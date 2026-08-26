@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Pizza do Kim - Pedidos</title>
+<style>
+:root{--red:#a71919;--dark:#211a18;--cream:#fff8ef;--green:#167a3e;--border:#eaded6}
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,Helvetica,sans-serif;background:var(--cream);color:var(--dark)}
+header{background:linear-gradient(135deg,#b71c1c,#831010);color:#fff;padding:22px}
+.wrap{max-width:1050px;margin:auto;padding:18px}
+.top{display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap}
+h1{margin:0;font-size:29px}.sub{opacity:.9;margin-top:5px}
+.status{padding:9px 12px;background:#ffffff1f;border:1px solid #ffffff44;border-radius:999px;font-weight:700}
+.toolbar{display:flex;gap:10px;flex-wrap:wrap;margin:18px 0}
+button,select{min-height:44px;border-radius:10px;font-size:15px}
+button{border:0;padding:10px 14px;font-weight:800;cursor:pointer}
+.refresh{background:#25201e;color:#fff}.clear{background:#eee1d9;color:#7b2222}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:15px}
+.order{background:#fff;border:1px solid var(--border);border-radius:16px;padding:17px;box-shadow:0 6px 20px #4b22120c}
+.order.new{border:2px solid var(--red)}
+.order-head{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+.order h2{font-size:20px;margin:0;color:var(--red)}
+.badge{font-size:12px;border-radius:999px;padding:6px 9px;background:#fff0ef;color:var(--red);font-weight:900}
+.meta{font-size:14px;color:#6e6460;line-height:1.5;margin-top:8px}
+.items{border-top:1px dashed #cfc1b9;border-bottom:1px dashed #cfc1b9;margin:13px 0;padding:8px 0}
+.item{padding:7px 0;line-height:1.4}
+.total{display:flex;justify-content:space-between;font-size:21px;font-weight:900;color:var(--red);margin:10px 0}
+.actions{display:flex;gap:9px;flex-wrap:wrap}
+.print{background:#24201e;color:#fff;flex:1}.done{background:var(--green);color:#fff;flex:1}.remove{background:#f0e7e2;color:#792626}
+.empty{background:white;border:1px dashed #cebdb4;border-radius:16px;padding:35px;text-align:center;color:#736964}
+.demo{background:#fff4d8;border:1px solid #ebcf84;padding:12px;border-radius:12px;margin-bottom:15px;font-size:14px;line-height:1.45}
+@media print{
+body{background:#fff}.no-print,header{display:none!important}.wrap{padding:0}.grid{display:block}
+.order{display:none;border:0;box-shadow:none}.order.printing{display:block!important}
+.order.printing .actions{display:none}.order.printing{font-size:17px}
+}
+</style>
+</head>
+<body>
+<header>
+ <div class="wrap top">
+  <div><h1>🍕 Pizza do Kim — Pedidos</h1><div class="sub">Painel do vendedor • somente impressão e controle</div></div>
+  <div class="status" id="connectionStatus">Conectando...</div>
+ </div>
+</header>
+
+<div class="wrap">
+  <div class="demo no-print">
+    Este painel recebe automaticamente os pedidos enviados pelo site do cliente. Novos pedidos são atualizados a cada 3 segundos.
+  </div>
+
+  <div class="toolbar no-print">
+    <button class="refresh" id="refreshNow">↻ Atualizar agora</button>
+    <button class="clear" id="clearDone">Limpar finalizados</button>
+    <select id="filter">
+      <option value="all">Todos os pedidos</option>
+      <option value="new">Somente novos</option>
+      <option value="done">Finalizados</option>
+    </select>
+  </div>
+
+  <div id="orders" class="grid"></div>
+</div>
+
+<script>
+(()=>{
+  let orders=[];
+
+  const money=v=>new Intl.NumberFormat("pt-BR",{style:"currency",currency:"BRL"}).format(Number(v)||0);
+  const esc=s=>String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));
+  const statusEl=document.getElementById("connectionStatus");
+
+  function formatDate(iso){
+    const d=new Date(iso);
+    return isNaN(d)?iso:d.toLocaleString("pt-BR");
+  }
+
+  async function loadOrders(){
+    try{
+      const r=await fetch("/api/orders",{cache:"no-store"});
+      if(!r.ok) throw new Error();
+      orders=await r.json();
+      statusEl.textContent="🟢 Conectado";
+      render();
+    }catch(e){
+      statusEl.textContent="🔴 Sem conexão";
+    }
+  }
+
+  async function updateStatus(id,status){
+    const r=await fetch(`/api/orders/${encodeURIComponent(id)}`,{
+      method:"PATCH",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({status})
+    });
+    if(!r.ok) throw new Error();
+    await loadOrders();
+  }
+
+  async function deleteOrder(id){
+    const r=await fetch(`/api/orders/${encodeURIComponent(id)}`,{method:"DELETE"});
+    if(!r.ok) throw new Error();
+    await loadOrders();
+  }
+
+  function render(){
+    const filter=document.getElementById("filter").value;
+    const visible=orders.filter(o=>filter==="all" || o.status===filter).sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt));
+    const box=document.getElementById("orders");
+
+    if(!visible.length){
+      box.innerHTML='<div class="empty">Nenhum pedido para mostrar.</div>';
+      return;
+    }
+
+    box.innerHTML=visible.map(o=>`
+      <article class="order ${o.status==="new"?"new":""}" data-id="${esc(o.id)}">
+        <div class="order-head">
+          <div>
+            <h2>Pedido #${esc(o.number)}</h2>
+            <div class="meta">${formatDate(o.createdAt)}</div>
+          </div>
+          <span class="badge">${o.status==="new"?"NOVO":"FINALIZADO"}</span>
+        </div>
+
+        <div class="meta">
+          <strong>Cliente:</strong> ${esc(o.customer?.name||"-")}<br>
+          <strong>Telefone:</strong> ${esc(o.customer?.phone||"-")}<br>
+          <strong>Endereço:</strong> ${esc(o.customer?.address||"-")}<br>
+          ${o.customer?.reference?`<strong>Referência:</strong> ${esc(o.customer.reference)}<br>`:""}
+          <strong>Pagamento:</strong> ${esc(o.customer?.payment||"-")}
+          ${o.customer?.change?`<br><strong>Troco para:</strong> ${esc(o.customer.change)}`:""}
+        </div>
+
+        <div class="items">
+          ${(o.items||[]).map((i,idx)=>`
+            <div class="item">
+              <strong>${idx+1}. ${esc(i.title||i.name||"Item")}</strong><br>
+              ${i.detail?`${esc(i.detail)}<br>`:""}
+              ${i.obs?`Obs.: ${esc(i.obs)}<br>`:""}
+              ${esc(i.qty||1)} × ${money(i.unit)} = <strong>${money((i.qty||1)*(i.unit||0))}</strong>
+            </div>`).join("")}
+        </div>
+
+        <div class="meta">
+          Subtotal: ${money(o.subtotal)}<br>
+          Taxa de entrega: ${money(o.deliveryFee)}
+        </div>
+        <div class="total"><span>Total</span><span>${money(o.total)}</span></div>
+
+        <div class="actions no-print">
+          <button class="print" data-action="print">🖨️ Imprimir pedido</button>
+          <button class="done" data-action="toggle">${o.status==="new"?"✓ Marcar finalizado":"↩ Reabrir"}</button>
+          <button class="remove" data-action="remove">Excluir</button>
+        </div>
+      </article>
+    `).join("");
+
+    box.querySelectorAll(".order").forEach(card=>{
+      const id=card.dataset.id;
+      card.querySelector('[data-action="print"]').addEventListener("click",()=>{
+        document.querySelectorAll(".order").forEach(x=>x.classList.remove("printing"));
+        card.classList.add("printing");
+        window.print();
+        setTimeout(()=>card.classList.remove("printing"),300);
+      });
+      card.querySelector('[data-action="toggle"]').addEventListener("click",async()=>{
+        const o=orders.find(x=>x.id===id);
+        try{ await updateStatus(id,o.status==="new"?"done":"new"); }
+        catch(e){alert("Não foi possível atualizar o pedido.");}
+      });
+      card.querySelector('[data-action="remove"]').addEventListener("click",async()=>{
+        if(confirm("Excluir este pedido?")){
+          try{ await deleteOrder(id); }
+          catch(e){alert("Não foi possível excluir o pedido.");}
+        }
+      });
+    });
+  }
+
+  document.getElementById("filter").addEventListener("change",render);
+  document.getElementById("refreshNow").addEventListener("click",loadOrders);
+  document.getElementById("clearDone").addEventListener("click",async()=>{
+    const done=orders.filter(o=>o.status==="done");
+    if(!done.length) return;
+    if(!confirm(`Excluir ${done.length} pedido(s) finalizado(s)?`)) return;
+    try{
+      for(const o of done) await deleteOrder(o.id);
+      await loadOrders();
+    }catch(e){alert("Não foi possível limpar os pedidos finalizados.");}
+  });
+
+  loadOrders();
+  setInterval(loadOrders,3000);
+})();
+</script>
+</body>
+</html>

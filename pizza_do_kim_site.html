@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pizza do Kim - Delivery</title>
+  <style>
+    :root{
+      --red:#b71c1c;--red2:#8e1111;--cream:#fff8ef;--gold:#f2b84b;--dark:#211a18;
+      --card:#ffffff;--muted:#6f6763;--border:#eaded6;--green:#168a45;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;font-family:Arial,Helvetica,sans-serif;background:var(--cream);color:var(--dark)}
+    header{background:linear-gradient(135deg,var(--red),var(--red2));color:#fff;padding:28px 18px}
+    .head{max-width:1100px;margin:auto;display:flex;justify-content:space-between;gap:18px;align-items:center;flex-wrap:wrap}
+    .brand h1{margin:0;font-size:34px}.brand p{margin:7px 0 0;opacity:.93}
+    .badge{background:#fff2;padding:10px 14px;border:1px solid #ffffff44;border-radius:999px;font-weight:700}
+    .container{max-width:1100px;margin:0 auto;padding:22px 16px 45px}
+    .layout{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(300px,.65fr);gap:20px;align-items:start}
+    .card{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:20px;box-shadow:0 7px 24px #4b22120d;margin-bottom:18px}
+    h2{margin:0 0 15px;color:var(--red);font-size:21px}
+    h3{font-size:16px;margin:16px 0 8px}
+    label{display:block;font-weight:700;margin:12px 0 6px}
+    input,select,textarea{width:100%;min-height:46px;padding:11px 12px;border:1px solid #d7cbc4;border-radius:11px;background:#fff;font-size:16px;color:var(--dark)}
+    textarea{min-height:80px;resize:vertical}
+    .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    .sizes,.modes{display:grid;grid-template-columns:repeat(4,1fr);gap:9px}
+    .modes{grid-template-columns:1fr 1fr}
+    .choice{min-height:48px;border:2px solid var(--border);background:#fff;border-radius:12px;font-weight:800;cursor:pointer}
+    .choice.active{border-color:var(--red);background:#fff0f0;color:var(--red)}
+    .hidden{display:none}
+    .pizza-item{border:1px solid var(--border);border-radius:14px;padding:14px;margin-top:12px;background:#fffdfb}
+    .pizza-item strong{color:var(--red)}
+    .pizza-top{display:flex;justify-content:space-between;gap:10px;align-items:center}
+    .mini-btn{border:0;border-radius:9px;padding:8px 10px;font-weight:700;cursor:pointer;background:#f2ece8;color:#6d2828}
+    .add{width:100%;border:0;background:var(--red);color:#fff;border-radius:12px;padding:14px;font-size:16px;font-weight:800;cursor:pointer;margin-top:12px}
+    .add:hover{background:var(--red2)}
+    .summary{position:sticky;top:12px}
+    .summary-line{display:flex;justify-content:space-between;gap:15px;margin:9px 0}
+    .summary small{color:var(--muted)}
+    .total{font-size:24px;font-weight:900;color:var(--red);border-top:1px dashed #bcaea5;padding-top:14px;margin-top:14px}
+    .btn{width:100%;min-height:48px;border:0;border-radius:12px;font-size:16px;font-weight:800;cursor:pointer;margin-top:10px}
+    .print{background:#26211f;color:#fff}
+    .whatsapp{background:var(--green);color:white}
+    .clear{background:#f1e9e4;color:#7b2525}
+    .empty{color:var(--muted);font-size:14px;padding:8px 0}
+    .info{font-size:14px;color:var(--muted);line-height:1.5}
+    .price-note{font-size:13px;color:var(--muted);margin-top:8px}
+    footer{text-align:center;color:var(--muted);font-size:13px;padding:12px 0}
+    @media(max-width:800px){.layout{grid-template-columns:1fr}.summary{position:static}.sizes{grid-template-columns:repeat(2,1fr)}}
+    @media(max-width:520px){.grid2{grid-template-columns:1fr}.brand h1{font-size:28px}}
+    @media print{
+      body{background:#fff}
+      header,.order-form,.actions,footer{display:none!important}
+      .container{padding:0}.layout{display:block}.summary{position:static;border:0;box-shadow:none}
+      .summary h2{color:#000}.card{box-shadow:none;border:0}.print-only{display:block!important}
+    }
+    .print-only{display:none}
+  </style>
+</head>
+<body>
+<header>
+  <div class="head">
+    <div class="brand">
+      <h1>🍕 Pizza do Kim</h1>
+      <p>Somente Delivery • São José do Jacuri - MG</p>
+    </div>
+    <div class="badge">⭐ 5,0 no Google</div>
+  </div>
+</header>
+
+<div class="container">
+  <div class="layout">
+    <main class="order-form">
+      <section class="card">
+        <h2>1. Monte sua pizza</h2>
+
+        <label>Tamanho</label>
+        <div class="sizes" id="sizes">
+          <button type="button" class="choice active" data-size="P">P</button>
+          <button type="button" class="choice" data-size="M">M</button>
+          <button type="button" class="choice" data-size="G">G</button>
+          <button type="button" class="choice" data-size="GG">GG</button>
+        </div>
+
+        <label>Como deseja?</label>
+        <div class="modes" id="modes">
+          <button type="button" class="choice active" data-mode="inteira">1 sabor</button>
+          <button type="button" class="choice" data-mode="meio">Meio a meio</button>
+        </div>
+
+        <div class="grid2">
+          <div>
+            <label for="flavor1">Sabor 1</label>
+            <select id="flavor1"></select>
+            <div class="price-note" id="desc1"></div>
+          </div>
+          <div id="secondFlavorWrap" class="hidden">
+            <label for="flavor2">Sabor 2</label>
+            <select id="flavor2"></select>
+            <div class="price-note" id="desc2"></div>
+          </div>
+        </div>
+
+        <label>Borda da pizza</label>
+        <div class="modes" id="crustModes">
+          <button type="button" class="choice active" data-crust="Sem borda">Sem borda</button>
+          <button type="button" class="choice" data-crust="Com borda">Com borda</button>
+        </div>
+
+        <div id="crustFlavorWrap" class="hidden">
+          <label for="crustFlavor">Sabor da borda</label>
+          <select id="crustFlavor">
+            <option>Catupiry</option>
+            <option>Cheddar</option>
+          </select>
+          <div class="price-note">Acréscimo de R$ 7,00 para borda de Catupiry ou Cheddar.</div>
+        </div>
+
+        <label for="obsPizza">Observação da pizza</label>
+        <textarea id="obsPizza" placeholder="Ex.: sem cebola, massa bem assada..."></textarea>
+
+        <div class="grid2">
+          <div>
+            <label for="qty">Quantidade</label>
+            <input id="qty" type="number" value="1" min="1" max="20">
+          </div>
+          <div>
+            <label for="pizzaPrice">Preço calculado</label>
+            <input id="pizzaPrice" readonly>
+          </div>
+        </div>
+
+        <div class="price-note">Na pizza meio a meio, o sistema usa o maior preço entre os dois sabores no tamanho escolhido.</div>
+        <button class="add" id="addPizza" type="button">+ Adicionar pizza ao pedido</button>
+      </section>
+
+      <section class="card">
+        <h2>2. Pizzas doces</h2>
+        <p class="info">Escolha o sabor e o tamanho.</p>
+        <div class="grid2">
+          <div>
+            <label for="sweetFlavor">Sabor</label>
+            <select id="sweetFlavor">
+              <option value="Banana com canela">Banana com canela — mussarela, banana, canela e doce de leite</option>
+              <option value="Dois amores">Dois amores — chocolate branco e chocolate preto</option>
+            </select>
+          </div>
+          <div>
+            <label for="sweetSize">Tamanho</label>
+            <select id="sweetSize">
+              <option value="P">P — R$ 35,00</option>
+              <option value="M">M — R$ 42,00</option>
+            </select>
+          </div>
+        </div>
+        <label for="sweetQty">Quantidade</label>
+        <input id="sweetQty" type="number" value="1" min="1" max="20">
+        <button class="add" id="addSweet" type="button">+ Adicionar pizza doce</button>
+      </section>
+
+      <section class="card">
+        <h2>3. Bebidas</h2>
+        <div class="grid2">
+          <div>
+            <label for="drink">Bebida</label>
+            <select id="drink">
+              <option value="Coca-Cola 2L">Coca-Cola 2L — R$ 14,00</option>
+              <option value="Guaraná 2L">Guaraná 2L — R$ 10,00</option>
+              <option value="Sukita laranja 2L">Sukita laranja 2L — R$ 10,00</option>
+              <option value="Coca lata">Coca lata — R$ 5,00</option>
+              <option value="Guaraná 1L">Guaraná 1L — R$ 6,50</option>
+              <option value="Kuat">Kuat — R$ 8,00</option>
+            </select>
+          </div>
+          <div>
+            <label for="drinkQty">Quantidade</label>
+            <input id="drinkQty" type="number" value="1" min="1" max="20">
+          </div>
+        </div>
+        <button class="add" id="addDrink" type="button">+ Adicionar bebida</button>
+      </section>
+
+      <section class="card">
+        <h2>4. Dados para entrega</h2>
+        <div class="grid2">
+          <div><label for="name">Nome</label><input id="name" placeholder="Nome do cliente"></div>
+          <div><label for="phone">Telefone</label><input id="phone" placeholder="(33) 99999-9999"></div>
+        </div>
+        <label for="address">Endereço de entrega</label>
+        <input id="address" placeholder="Rua, número, bairro">
+        <div class="grid2">
+          <div><label for="reference">Referência</label><input id="reference" placeholder="Ex.: perto da praça"></div>
+          <div>
+            <label for="payment">Pagamento</label>
+            <select id="payment">
+              <option>Dinheiro</option>
+              <option>Pix</option>
+              <option>Cartão na entrega</option>
+            </select>
+          </div>
+        </div>
+        <label for="change">Troco para</label>
+        <input id="change" placeholder="Ex.: R$ 100,00">
+      </section>
+    </main>
+
+    <aside class="card summary" id="receipt">
+      <div class="print-only">
+        <h2 style="margin-bottom:3px">Pizza do Kim</h2>
+        <div class="info">Somente Delivery<br>R. São Pedro, São José do Jacuri - MG<br>(33) 99847-1303</div>
+        <hr>
+      </div>
+      <h2>Seu pedido</h2>
+      <div id="items"><div class="empty">Nenhuma pizza adicionada ainda.</div></div>
+
+      <div class="summary-line"><span>Subtotal</span><strong id="subtotal">R$ 0,00</strong></div>
+      <div class="summary-line"><span>Taxa de entrega</span><strong id="delivery">R$ 0,00</strong></div>
+      <div class="summary-line total"><span>Total</span><span id="total">R$ 0,00</span></div>
+
+      <div id="customerSummary" class="info" style="margin-top:18px"></div>
+
+      <div class="actions">
+        <button class="btn print" id="printBtn" type="button">🖨️ Imprimir notinha</button>
+        <button class="btn whatsapp" id="sendStoreBtn" type="button">✅ Enviar pedido para a pizzaria</button>
+        <button class="btn clear" id="whatsappBtn" type="button">🧾 Compartilhar comprovante</button>
+        <button class="btn clear" id="clearBtn" type="button">Limpar pedido</button>
+      </div>
+
+      <p class="info" style="margin-top:15px">
+        Pizza do Kim • Somente Delivery<br>
+        R. São Pedro, São José do Jacuri - MG<br>
+        (33) 99847-1303
+      </p>
+    </aside>
+  </div>
+  <canvas id="receiptCanvas" width="900" height="1200" style="display:none"></canvas>
+  <footer>Pizza do Kim — sistema de pedidos</footer>
+</div>
+
+<script>
+(() => {
+  // EDITE AQUI OS SABORES E PREÇOS
+  const menu = [
+    {name:"Calabresa", desc:"molho, mussarela, calabresa, azeitona e cebola", prices:{P:35, M:45, G:52, GG:60}},
+    {name:"À moda", desc:"molho, mussarela, presunto, milho, tomate, pimentão e cebola", prices:{P:35, M:45, G:52, GG:60}},
+    {name:"Vegetariana", desc:"molho, mussarela, tomate, milho, pimentão e cebola", prices:{P:35, M:45, G:52, GG:60}},
+    {name:"Marguerita", desc:"molho, mussarela, tomate e manjericão", prices:{P:35, M:45, G:52, GG:60}},
+    {name:"Portuguesa", desc:"molho, mussarela, presunto, ovo, pimentão, milho, tomate, cebola e azeitona", prices:{P:35, M:45, G:52, GG:60}},
+    {name:"Frango com catupiry", desc:"molho, mussarela, frango, milho e catupiry", prices:{P:35, M:45, G:52, GG:60}},
+    {name:"Napolitana", desc:"molho, mussarela, presunto e tomate", prices:{P:35, M:45, G:52, GG:60}},
+    {name:"Bacon", desc:"molho, mussarela, bacon, tomate e milho", prices:{P:35, M:45, G:52, GG:60}},
+    {name:"Lombinho", desc:"molho, mussarela, lombinho e cebola", prices:{P:35, M:45, G:52, GG:60}},
+    {name:"Calabresa com bacon", desc:"molho, mussarela, calabresa, bacon, milho, catupiry, azeitona e cebola", prices:{P:35, M:45, G:52, GG:60}},
+    {name:"Frango com cheddar", desc:"molho, mussarela, frango, milho e cheddar", prices:{P:35, M:45, G:52, GG:60}},
+    {name:"Carne seca", desc:"molho, mussarela, carne seca, catupiry e pimenta biquinho", prices:{P:35, M:45, G:52, GG:60}},
+    {name:"Especial do Kim", desc:"molho, mussarela, presunto, bacon, calabresa, milho, catupiry, pimentão, tomate, cebola e azeitona", prices:{P:35, M:45, G:52, GG:60}},
+    {name:"Provolombo", desc:"molho, mussarela, lombinho, provolone e catupiry", prices:{P:35, M:45, G:52, GG:60}},
+    {name:"Três queijos", desc:"molho, mussarela, catupiry e provolone", prices:{P:35, M:45, G:52, GG:60}},
+    {name:"Crocante", desc:"molho, mussarela, catupiry, bacon e batata palha", prices:{P:35, M:45, G:52, GG:60}},
+    {name:"Pepperoni", desc:"molho, mussarela, pepperoni e catupiry", prices:{P:35, M:45, G:52, GG:60}},
+    {name:"Frango com bacon", desc:"molho, frango, mussarela, milho, catupiry ou cheddar", prices:{P:35, M:45, G:52, GG:60}}
+  ];
+
+  const sweetPrices = {P:35, M:42};
+  const drinks = {
+    "Coca-Cola 2L":14,
+    "Guaraná 2L":10,
+    "Sukita laranja 2L":10,
+    "Coca lata":5,
+    "Guaraná 1L":6.5,
+    "Kuat":8
+  };
+  const state = {size:"P", mode:"inteira", crust:"Sem borda", items:[]};
+  const q = id => document.getElementById(id);
+  const brl = v => new Intl.NumberFormat("pt-BR",{style:"currency",currency:"BRL"}).format(v);
+
+  function fillFlavors(){
+    [q("flavor1"),q("flavor2")].forEach(sel=>{
+      sel.innerHTML = menu.map((x,i)=>`<option value="${i}">${x.name}</option>`).join("");
+    });
+  }
+
+  function currentUnit(){
+    const a = menu[+q("flavor1").value].prices[state.size];
+    let base = a;
+    if(state.mode === "meio"){
+      const b = menu[+q("flavor2").value].prices[state.size];
+      base = Math.max(a,b);
+    }
+    const crustExtra = state.crust === "Com borda" ? 7 : 0;
+    return base + crustExtra;
+  }
+
+  function updatePrice(){
+    q("desc1").textContent = menu[+q("flavor1").value].desc;
+    q("desc2").textContent = menu[+q("flavor2").value].desc;
+    const qty = Math.max(1, Math.min(20, parseInt(q("qty").value)||1));
+    q("qty").value = qty;
+    q("pizzaPrice").value = brl(currentUnit()*qty);
+  }
+
+  document.querySelectorAll("#sizes .choice").forEach(btn=>{
+    btn.addEventListener("click",()=>{
+      document.querySelectorAll("#sizes .choice").forEach(b=>b.classList.remove("active"));
+      btn.classList.add("active"); state.size=btn.dataset.size; updatePrice();
+    });
+  });
+
+  document.querySelectorAll("#modes .choice").forEach(btn=>{
+    btn.addEventListener("click",()=>{
+      document.querySelectorAll("#modes .choice").forEach(b=>b.classList.remove("active"));
+      btn.classList.add("active"); state.mode=btn.dataset.mode;
+      q("secondFlavorWrap").classList.toggle("hidden",state.mode!=="meio");
+      updatePrice();
+    });
+  });
+
+  document.querySelectorAll("#crustModes .choice").forEach(btn=>{
+    btn.addEventListener("click",()=>{
+      document.querySelectorAll("#crustModes .choice").forEach(b=>b.classList.remove("active"));
+      btn.classList.add("active");
+      state.crust=btn.dataset.crust;
+      q("crustFlavorWrap").classList.toggle("hidden",state.crust!=="Com borda");
+      updatePrice();
+    });
+  });
+
+  q("flavor1").addEventListener("change",updatePrice);
+  q("flavor2").addEventListener("change",updatePrice);
+  q("qty").addEventListener("input",updatePrice);
+
+  q("addPizza").addEventListener("click",()=>{
+    const qty = Math.max(1,parseInt(q("qty").value)||1);
+    const f1 = menu[+q("flavor1").value].name;
+    const f2 = menu[+q("flavor2").value].name;
+    const unit = currentUnit();
+    state.items.push({
+      id:Date.now()+Math.random(),
+      type:"pizza",
+      size:state.size, mode:state.mode, f1, f2, qty, unit,
+      crust:state.crust,
+      crustFlavor:state.crust==="Com borda" ? q("crustFlavor").value : "",
+      obs:q("obsPizza").value.trim()
+    });
+    q("obsPizza").value="";
+    q("qty").value=1;
+    render();
+    updatePrice();
+  });
+
+  q("addSweet").addEventListener("click",()=>{
+    const qty = Math.max(1, Math.min(20, parseInt(q("sweetQty").value)||1));
+    const size = q("sweetSize").value;
+    const name = q("sweetFlavor").value;
+    state.items.push({
+      id:Date.now()+Math.random(),
+      type:"sweet",
+      name, size, qty, unit:sweetPrices[size]
+    });
+    q("sweetQty").value=1;
+    render();
+  });
+
+  q("addDrink").addEventListener("click",()=>{
+    const qty = Math.max(1, Math.min(20, parseInt(q("drinkQty").value)||1));
+    const name = q("drink").value;
+    state.items.push({
+      id:Date.now()+Math.random(),
+      type:"drink",
+      name, qty, unit:drinks[name]
+    });
+    q("drinkQty").value=1;
+    render();
+  });
+
+  function removeItem(id){
+    state.items = state.items.filter(i=>i.id!==id);
+    render();
+  }
+
+  function customerText(){
+    const parts=[];
+    if(q("name").value.trim()) parts.push(`<strong>Cliente:</strong> ${escapeHtml(q("name").value.trim())}`);
+    if(q("phone").value.trim()) parts.push(`<strong>Telefone:</strong> ${escapeHtml(q("phone").value.trim())}`);
+    if(q("address").value.trim()) parts.push(`<strong>Entrega:</strong> ${escapeHtml(q("address").value.trim())}`);
+    if(q("reference").value.trim()) parts.push(`<strong>Referência:</strong> ${escapeHtml(q("reference").value.trim())}`);
+    parts.push(`<strong>Pagamento:</strong> ${escapeHtml(q("payment").value)}`);
+    if(q("payment").value==="Dinheiro" && q("change").value.trim()) parts.push(`<strong>Troco para:</strong> ${escapeHtml(q("change").value.trim())}`);
+    return parts.join("<br>");
+  }
+
+  function escapeHtml(s){
+    return s.replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));
+  }
+
+  function render(){
+    const box=q("items");
+    if(!state.items.length){
+      box.innerHTML='<div class="empty">Nenhuma pizza adicionada ainda.</div>';
+    } else {
+      box.innerHTML=state.items.map((i,idx)=>{
+        if(i.type==="drink"){
+          return `<div class="pizza-item">
+            <div class="pizza-top"><div><strong>${idx+1}. Bebida</strong><br><small>${escapeHtml(i.name)}</small></div>
+            <button type="button" class="mini-btn remove" data-id="${i.id}">Remover</button></div>
+            <div class="summary-line"><span>${i.qty} × ${brl(i.unit)}</span><strong>${brl(i.qty*i.unit)}</strong></div>
+          </div>`;
+        }
+        if(i.type==="sweet"){
+          return `<div class="pizza-item">
+            <div class="pizza-top"><div><strong>${idx+1}. Pizza doce ${i.size}</strong><br><small>${escapeHtml(i.name)}</small></div>
+            <button type="button" class="mini-btn remove" data-id="${i.id}">Remover</button></div>
+            <div class="summary-line"><span>${i.qty} × ${brl(i.unit)}</span><strong>${brl(i.qty*i.unit)}</strong></div>
+          </div>`;
+        }
+        const sabor=i.mode==="meio" ? `½ ${i.f1} + ½ ${i.f2}` : i.f1;
+        return `<div class="pizza-item">
+          <div class="pizza-top">
+            <div><strong>${idx+1}. Pizza ${i.size}</strong><br><small>${sabor}</small></div>
+            <button type="button" class="mini-btn remove" data-id="${i.id}">Remover</button>
+          </div>
+          <div class="summary-line"><span>${i.qty} × ${brl(i.unit)}</span><strong>${brl(i.qty*i.unit)}</strong></div>
+          <small>Borda: ${escapeHtml(i.crust)}${i.crust==="Com borda" ? " ("+escapeHtml(i.crustFlavor)+")" : ""}</small><br>
+          ${i.obs?`<small>Obs.: ${escapeHtml(i.obs)}</small>`:""}
+        </div>`;
+      }).join("");
+      box.querySelectorAll(".remove").forEach(b=>b.addEventListener("click",()=>removeItem(+b.dataset.id)));
+    }
+    const subtotal=state.items.reduce((s,i)=>s+i.qty*i.unit,0);
+    const delivery=0; // Troque aqui se quiser taxa fixa, por exemplo: 5
+    q("subtotal").textContent=brl(subtotal);
+    q("delivery").textContent=brl(delivery);
+    q("total").textContent=brl(subtotal+delivery);
+    q("customerSummary").innerHTML=customerText();
+  }
+
+  ["name","phone","address","reference","change"].forEach(id=>q(id).addEventListener("input",render));
+  q("payment").addEventListener("change",render);
+
+  q("printBtn").addEventListener("click",()=>{
+    if(!state.items.length){alert("Adicione pelo menos uma pizza ao pedido.");return;}
+    render(); window.print();
+  });
+
+  async function makeReceiptImage(){
+    if(!state.items.length) throw new Error("empty");
+
+    const canvas=q("receiptCanvas");
+    const ctx=canvas.getContext("2d");
+    const W=900, pad=54, line=42;
+    const extraLines=state.items.reduce((n,i)=>{
+      if(i.type==="pizza") return n + (i.obs?4:3);
+      return n+2;
+    },0);
+    canvas.height=Math.max(1100, 520 + extraLines*line + 320);
+    canvas.width=W;
+
+    ctx.fillStyle="#fffaf4";
+    ctx.fillRect(0,0,W,canvas.height);
+    ctx.fillStyle="#9f1818";
+    ctx.fillRect(0,0,W,145);
+
+    ctx.fillStyle="#ffffff";
+    ctx.font="bold 48px Arial";
+    ctx.fillText("PIZZA DO KIM",pad,66);
+    ctx.font="24px Arial";
+    ctx.fillText("COMPROVANTE DO PEDIDO",pad,108);
+
+    let y=190;
+    ctx.fillStyle="#241d1b";
+    ctx.font="bold 25px Arial";
+    ctx.fillText("Itens do pedido",pad,y);
+    y+=34;
+
+    ctx.font="22px Arial";
+    state.items.forEach((i,idx)=>{
+      ctx.fillStyle="#241d1b";
+      if(i.type==="drink"){
+        ctx.font="bold 22px Arial";
+        ctx.fillText(`${idx+1}. ${i.qty}x ${i.name}`,pad,y);
+        y+=line;
+        ctx.font="22px Arial";
+        ctx.fillText(`Valor: ${brl(i.qty*i.unit)}`,pad+28,y);
+        y+=line;
+      } else if(i.type==="sweet"){
+        ctx.font="bold 22px Arial";
+        ctx.fillText(`${idx+1}. ${i.qty}x Pizza doce ${i.size}`,pad,y);
+        y+=line;
+        ctx.font="22px Arial";
+        ctx.fillText(`${i.name} — ${brl(i.qty*i.unit)}`,pad+28,y);
+        y+=line;
+      } else {
+        const sabor=i.mode==="meio" ? `1/2 ${i.f1} + 1/2 ${i.f2}` : i.f1;
+        ctx.font="bold 22px Arial";
+        ctx.fillText(`${idx+1}. ${i.qty}x Pizza ${i.size}`,pad,y);
+        y+=line;
+        ctx.font="22px Arial";
+        wrapCanvasText(ctx,sabor,pad+28,y,W-pad*2-28,30);
+        y+=line;
+        const borda=`Borda: ${i.crust}${i.crust==="Com borda" ? " ("+i.crustFlavor+")" : ""}`;
+        ctx.fillText(`${borda} — ${brl(i.qty*i.unit)}`,pad+28,y);
+        y+=line;
+        if(i.obs){
+          wrapCanvasText(ctx,`Obs.: ${i.obs}`,pad+28,y,W-pad*2-28,30);
+          y+=line;
+        }
+      }
+      ctx.strokeStyle="#dfd2ca";
+      ctx.beginPath(); ctx.moveTo(pad,y-12); ctx.lineTo(W-pad,y-12); ctx.stroke();
+      y+=10;
+    });
+
+    const subtotal=state.items.reduce((s,i)=>s+i.qty*i.unit,0);
+    const delivery=0;
+    y+=12;
+    ctx.font="22px Arial";
+    ctx.fillText(`Subtotal: ${brl(subtotal)}`,pad,y); y+=line;
+    ctx.fillText(`Taxa de entrega: ${brl(delivery)}`,pad,y); y+=line;
+    ctx.fillStyle="#9f1818";
+    ctx.font="bold 34px Arial";
+    ctx.fillText(`TOTAL: ${brl(subtotal+delivery)}`,pad,y); y+=58;
+
+    ctx.fillStyle="#241d1b";
+    ctx.font="bold 24px Arial";
+    ctx.fillText("Dados da entrega",pad,y); y+=38;
+    ctx.font="21px Arial";
+    const details=[
+      q("name").value.trim() ? `Cliente: ${q("name").value.trim()}` : "",
+      q("phone").value.trim() ? `Telefone: ${q("phone").value.trim()}` : "",
+      q("address").value.trim() ? `Endereço: ${q("address").value.trim()}` : "",
+      q("reference").value.trim() ? `Referência: ${q("reference").value.trim()}` : "",
+      `Pagamento: ${q("payment").value}`,
+      q("payment").value==="Dinheiro" && q("change").value.trim() ? `Troco para: ${q("change").value.trim()}` : ""
+    ].filter(Boolean);
+
+    details.forEach(t=>{
+      wrapCanvasText(ctx,t,pad,y,W-pad*2,29);
+      y+=line;
+    });
+
+    y+=20;
+    ctx.strokeStyle="#9f1818";
+    ctx.beginPath(); ctx.moveTo(pad,y); ctx.lineTo(W-pad,y); ctx.stroke();
+    y+=38;
+    ctx.fillStyle="#5d5551";
+    ctx.font="19px Arial";
+    ctx.fillText("Pizza do Kim • Somente Delivery",pad,y); y+=30;
+    ctx.fillText("R. São Pedro, São José do Jacuri - MG",pad,y); y+=30;
+    ctx.fillText("(33) 99847-1303",pad,y);
+
+    return new Promise(resolve=>canvas.toBlob(resolve,"image/png",1));
+  }
+
+  function wrapCanvasText(ctx,text,x,y,maxWidth,lineHeight){
+    const words=String(text).split(" ");
+    let current="";
+    for(let n=0;n<words.length;n++){
+      const test=current+words[n]+" ";
+      if(ctx.measureText(test).width>maxWidth && n>0){
+        ctx.fillText(current,x,y);
+        current=words[n]+" ";
+        y+=lineHeight;
+      } else current=test;
+    }
+    ctx.fillText(current,x,y);
+  }
+
+  function buildServerOrder(){
+    const subtotal=state.items.reduce((s,i)=>s+i.qty*i.unit,0);
+    const deliveryFee=0;
+    const serverItems=state.items.map(i=>{
+      if(i.type==="drink"){
+        return {title:i.name, detail:"Bebida", qty:i.qty, unit:i.unit, obs:""};
+      }
+      if(i.type==="sweet"){
+        return {title:`Pizza doce ${i.size}`, detail:i.name, qty:i.qty, unit:i.unit, obs:""};
+      }
+      const sabor=i.mode==="meio" ? `1/2 ${i.f1} + 1/2 ${i.f2}` : i.f1;
+      const borda=`Borda: ${i.crust}${i.crust==="Com borda" ? " ("+i.crustFlavor+")" : ""}`;
+      return {title:`Pizza ${i.size}`, detail:`${sabor} • ${borda}`, qty:i.qty, unit:i.unit, obs:i.obs||""};
+    });
+    return {
+      customer:{
+        name:q("name").value.trim(),
+        phone:q("phone").value.trim(),
+        address:q("address").value.trim(),
+        reference:q("reference").value.trim(),
+        payment:q("payment").value,
+        change:q("payment").value==="Dinheiro" ? q("change").value.trim() : ""
+      },
+      items:serverItems,
+      subtotal,
+      deliveryFee,
+      total:subtotal+deliveryFee
+    };
+  }
+
+  q("sendStoreBtn").addEventListener("click",async()=>{
+    if(!state.items.length){alert("Adicione pelo menos um item ao pedido.");return;}
+    if(!q("name").value.trim() || !q("phone").value.trim() || !q("address").value.trim()){
+      alert("Preencha nome, telefone e endereço antes de enviar.");
+      return;
+    }
+    const btn=q("sendStoreBtn");
+    const old=btn.textContent;
+    btn.disabled=true;
+    btn.textContent="Enviando...";
+    try{
+      const r=await fetch("/api/orders",{
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify(buildServerOrder())
+      });
+      if(!r.ok) throw new Error("Falha no envio");
+      const data=await r.json();
+      alert(`Pedido #${data.number} enviado para a pizzaria!`);
+      btn.textContent="✅ Pedido enviado";
+      setTimeout(()=>{btn.textContent=old;btn.disabled=false},1800);
+    }catch(e){
+      alert("Não foi possível enviar. Abra este site pelo servidor da Pizza do Kim.");
+      btn.textContent=old;
+      btn.disabled=false;
+    }
+  });
+
+  q("whatsappBtn").addEventListener("click",async()=>{
+    if(!state.items.length){alert("Adicione pelo menos um item ao pedido.");return;}
+    try{
+      const blob=await makeReceiptImage();
+      const file=new File([blob],"comprovante-pizza-do-kim.png",{type:"image/png"});
+
+      if(navigator.share && navigator.canShare && navigator.canShare({files:[file]})){
+        await navigator.share({
+          files:[file],
+          title:"Comprovante - Pizza do Kim",
+          text:"Comprovante do pedido"
+        });
+      }else{
+        const a=document.createElement("a");
+        a.href=URL.createObjectURL(blob);
+        a.download="comprovante-pizza-do-kim.png";
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+        alert("O comprovante foi salvo como imagem. Agora envie a imagem pelo WhatsApp.");
+      }
+    }catch(err){
+      if(err && err.name==="AbortError") return;
+      alert("Não foi possível gerar o comprovante neste navegador.");
+    }
+  });
+
+  q("clearBtn").addEventListener("click",()=>{
+    if(confirm("Deseja limpar todo o pedido?")){
+      state.items=[]; render();
+    }
+  });
+
+  fillFlavors(); updatePrice(); render();
+})();
+</script>
+</body>
+</html>

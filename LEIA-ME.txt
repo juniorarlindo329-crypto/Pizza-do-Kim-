@@ -1,0 +1,20 @@
+PIZZA DO KIM - SISTEMA CONECTADO
+
+Arquivos:
+- pizza_do_kim_site.html = site do cliente
+- pizza_do_kim_vendedor.html = painel do vendedor
+- server.js = servidor que conecta os dois
+- orders.json = banco de pedidos simples
+- package.json = configuração do servidor
+
+COMO TESTAR NO COMPUTADOR:
+1. Instale Node.js.
+2. Abra a pasta no terminal.
+3. Execute: npm start
+4. Abra:
+   Cliente:  http://localhost:3000/cliente
+   Vendedor: http://localhost:3000/vendedor
+
+IMPORTANTE:
+Para cliente e vendedor usarem em celulares diferentes pela internet,
+este pacote precisa ser publicado em um serviço de hospedagem que rode Node.js.
