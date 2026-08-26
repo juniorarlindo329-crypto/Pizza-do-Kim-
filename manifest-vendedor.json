@@ -1,0 +1,23 @@
+{
+  "name": "Pizza do Kim - Pedidos",
+  "short_name": "Pizza do Kim",
+  "description": "Painel do vendedor para receber e imprimir pedidos da Pizza do Kim.",
+  "start_url": "/vendedor",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#fff8ef",
+  "theme_color": "#a71919",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
