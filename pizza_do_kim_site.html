@@ -64,7 +64,103 @@
     .tutorial-skip{background:#eee7e3;color:#5d2525}
     .tutorial-next{background:var(--red);color:#fff}
 
-    @media(max-width:800px){.layout{grid-template-columns:1fr}.summary{position:static}.sizes{grid-template-columns:repeat(2,1fr)}}
+    
+    .animated-hero{
+      position:relative;
+      min-height:520px;
+      overflow:hidden;
+      background:#090504;
+      color:#fff;
+      isolation:isolate;
+      border-bottom:1px solid #2b1710;
+    }
+    .animated-hero .hero-image{
+      position:absolute;inset:0;
+      width:100%;height:100%;
+      object-fit:cover;
+      object-position:center 20%;
+      transform:scale(1.03);
+      animation:heroBreath 7s ease-in-out infinite alternate;
+      filter:saturate(1.05) contrast(1.03);
+      z-index:-4;
+    }
+    .animated-hero::after{
+      content:"";position:absolute;inset:0;
+      background:linear-gradient(180deg,rgba(0,0,0,.12) 0%,rgba(0,0,0,.08) 45%,rgba(0,0,0,.62) 100%);
+      z-index:-1;
+    }
+    @keyframes heroBreath{
+      from{transform:scale(1.03) translateY(0)}
+      to{transform:scale(1.07) translateY(-5px)}
+    }
+    .smoke-layer{
+      position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:-2;
+    }
+    .smoke{
+      position:absolute;
+      bottom:-110px;
+      width:180px;height:260px;
+      border-radius:50%;
+      background:radial-gradient(ellipse at center,rgba(255,255,255,.20) 0%,rgba(230,230,230,.10) 36%,rgba(255,255,255,0) 72%);
+      filter:blur(18px);
+      opacity:.5;
+      animation:smokeRise linear infinite;
+    }
+    .smoke.s1{left:45%;animation-duration:8s;animation-delay:-2s}
+    .smoke.s2{left:58%;width:220px;height:300px;animation-duration:10s;animation-delay:-6s}
+    .smoke.s3{left:32%;width:150px;height:230px;animation-duration:9s;animation-delay:-4s}
+    @keyframes smokeRise{
+      0%{transform:translate3d(0,90px,0) scale(.65);opacity:0}
+      15%{opacity:.42}
+      55%{transform:translate3d(25px,-220px,0) scale(1.05);opacity:.38}
+      100%{transform:translate3d(-20px,-520px,0) scale(1.45);opacity:0}
+    }
+    .embers{position:absolute;inset:0;pointer-events:none;z-index:-1;overflow:hidden}
+    .ember{
+      position:absolute;bottom:-12px;width:5px;height:5px;border-radius:50%;
+      background:#ff641f;box-shadow:0 0 12px #ff3c00,0 0 20px #ff9a2f;
+      animation:emberFloat linear infinite;
+    }
+    .ember:nth-child(1){left:8%;animation-duration:5.2s;animation-delay:-1s}
+    .ember:nth-child(2){left:19%;animation-duration:6.4s;animation-delay:-4s;width:3px;height:3px}
+    .ember:nth-child(3){left:33%;animation-duration:4.8s;animation-delay:-2.2s}
+    .ember:nth-child(4){left:52%;animation-duration:6.9s;animation-delay:-5.5s;width:4px;height:4px}
+    .ember:nth-child(5){left:66%;animation-duration:5.6s;animation-delay:-3.4s}
+    .ember:nth-child(6){left:78%;animation-duration:7.2s;animation-delay:-6.1s;width:3px;height:3px}
+    .ember:nth-child(7){left:91%;animation-duration:5.1s;animation-delay:-2.8s}
+    @keyframes emberFloat{
+      0%{transform:translate(0,0) scale(.7);opacity:0}
+      12%{opacity:1}
+      60%{transform:translate(22px,-330px) scale(1);opacity:.75}
+      100%{transform:translate(-14px,-610px) scale(.4);opacity:0}
+    }
+    .hero-content{
+      max-width:1100px;margin:auto;
+      min-height:520px;padding:28px 18px 34px;
+      display:flex;align-items:flex-end;
+    }
+    .hero-copy{
+      max-width:720px;
+      text-shadow:0 2px 14px rgba(0,0,0,.75);
+    }
+    .hero-copy h1{font-size:38px;margin:0 0 8px;color:#fff}
+    .hero-copy p{font-size:19px;margin:0 0 14px}
+    .hero-chip{
+      display:inline-flex;align-items:center;gap:9px;
+      padding:10px 15px;border-radius:999px;
+      background:rgba(120,20,14,.68);
+      border:1px solid rgba(255,130,75,.65);
+      backdrop-filter:blur(8px);
+      font-weight:800;
+    }
+    @media(max-width:700px){
+      .animated-hero,.hero-content{min-height:440px}
+      .animated-hero .hero-image{object-position:center 12%}
+      .hero-copy h1{font-size:30px}
+      .hero-copy p{font-size:16px}
+    }
+
+@media(max-width:800px){.layout{grid-template-columns:1fr}.summary{position:static}.sizes{grid-template-columns:repeat(2,1fr)}}
     @media(max-width:520px){.grid2{grid-template-columns:1fr}.brand h1{font-size:28px}}
     @media print{
       body{background:#fff}
@@ -113,15 +209,26 @@
     </div>
   </div>
 </div>
-<header>
-  <div class="head">
-    <div class="brand">
+<section class="animated-hero">
+  <img class="hero-image" src="hero-pizza-do-kim.png" alt="Pizza do Kim">
+  <div class="smoke-layer">
+    <span class="smoke s1"></span>
+    <span class="smoke s2"></span>
+    <span class="smoke s3"></span>
+  </div>
+  <div class="embers">
+    <span class="ember"></span><span class="ember"></span><span class="ember"></span>
+    <span class="ember"></span><span class="ember"></span><span class="ember"></span>
+    <span class="ember"></span>
+  </div>
+  <div class="hero-content">
+    <div class="hero-copy">
       <h1>🍕 Pizza do Kim</h1>
       <p>Somente Delivery • São José do Jacuri - MG</p>
+      <span class="hero-chip">⭐ 5,0 no Google</span>
     </div>
-    <div class="badge">⭐ 5,0 no Google</div>
   </div>
-</header>
+</section>
 
 <div class="container">
   <div class="layout">
