@@ -141,7 +141,12 @@
       display:flex;align-items:flex-end;
     }
     .hero-copy{
-      display:none;
+      display:flex;
+      flex-wrap:wrap;
+      align-items:center;
+      gap:9px;
+      max-width:760px;
+      text-shadow:0 2px 12px rgba(0,0,0,.85);
     }
     .hero-copy h1{font-size:38px;margin:0 0 8px;color:#fff}
     .hero-copy p{font-size:19px;margin:0 0 14px}
@@ -350,6 +355,27 @@ body.light-theme .clear,body.light-theme .mini-btn,body.light-theme .print{backg
 body.light-theme .total{color:#bd3614;border-top-color:#eadbd3}
 body.light-theme .theme-toggle{background:#fffffff0;color:#382820;border-color:#e6c6b5}
 
+
+    .hero-info-pill{
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      padding:8px 12px;
+      border-radius:999px;
+      background:rgba(12,10,9,.72);
+      border:1px solid rgba(255,135,65,.42);
+      color:#fff;
+      font-size:14px;
+      font-weight:800;
+      backdrop-filter:blur(7px);
+      box-shadow:0 4px 15px rgba(0,0,0,.24);
+    }
+    .hero-rating{border-color:rgba(255,194,55,.55)}
+    @media(max-width:600px){
+      .hero-copy{gap:6px}
+      .hero-info-pill{padding:6px 9px;font-size:11px}
+    }
+
 </style>
 </head>
 <body>
@@ -399,9 +425,9 @@ body.light-theme .theme-toggle{background:#fffffff0;color:#382820;border-color:#
 
 <div class="hero-content">
     <div class="hero-copy">
-      <h1>🍕 Pizza do Kim</h1>
-      <p>Somente Delivery • São José do Jacuri - MG</p>
-      <span class="hero-chip">⭐ 5,0 no Google</span>
+      <span class="hero-info-pill">📍 São José do Jacuri - MG</span>
+      <span class="hero-info-pill">🛵 Somente Delivery</span>
+      <span class="hero-info-pill hero-rating">⭐ 5,0 no Google</span>
     </div>
   </div>
 </section>
