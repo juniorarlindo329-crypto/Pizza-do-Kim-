@@ -171,134 +171,133 @@
     }
     .print-only{display:none}
   
-    /* EFEITOS ANIMADOS SOBRE A FOTO ORIGINAL */
-    .fx-fire-logo{
+    /* FOGO E FUMAÇA MAIS ORGÂNICOS, SEM TROCAR A FOTO */
+    .fx-defs{position:absolute;pointer-events:none}
+    .real-fire{
       position:absolute;
-      left:2.3%;
-      top:5.5%;
+      left:2.5%;
+      top:5%;
       width:39%;
       aspect-ratio:1/1;
       pointer-events:none;
       z-index:3;
       mix-blend-mode:screen;
     }
-
-    .flame-ring{
+    .rf{
       position:absolute;
       inset:2%;
       border-radius:50%;
+      filter:url(#fireDistort) drop-shadow(0 0 8px rgba(255,75,0,.55));
+      opacity:.58;
       background:
         conic-gradient(
-          from 0deg,
-          transparent 0deg 18deg,
-          rgba(255,69,0,.88) 30deg,
-          rgba(255,174,35,.95) 48deg,
-          transparent 70deg 110deg,
-          rgba(255,77,0,.82) 128deg,
-          rgba(255,205,75,.9) 147deg,
-          transparent 172deg 230deg,
-          rgba(255,63,0,.9) 250deg,
-          rgba(255,166,28,.9) 270deg,
-          transparent 295deg 360deg
+          from 10deg,
+          transparent 0 9%,
+          rgba(255,70,0,.72) 11%,
+          rgba(255,190,45,.95) 13%,
+          rgba(255,75,0,.70) 16%,
+          transparent 19% 31%,
+          rgba(255,90,0,.70) 34%,
+          rgba(255,210,70,.92) 36%,
+          transparent 40% 54%,
+          rgba(255,55,0,.76) 57%,
+          rgba(255,165,35,.90) 60%,
+          transparent 64% 77%,
+          rgba(255,82,0,.72) 80%,
+          rgba(255,196,52,.92) 83%,
+          transparent 87% 100%
         );
-      -webkit-mask:
-        radial-gradient(circle,transparent 62%,#000 64% 69%,transparent 71%);
-      mask:
-        radial-gradient(circle,transparent 62%,#000 64% 69%,transparent 71%);
-      filter:blur(1.2px) drop-shadow(0 0 8px rgba(255,70,0,.55));
-      opacity:.70;
-      animation:flameFlow 7.5s linear infinite, flamePulse 2.8s ease-in-out infinite alternate;
+      -webkit-mask:radial-gradient(circle,transparent 61%,#000 63% 68%,transparent 71%);
+      mask:radial-gradient(circle,transparent 61%,#000 63% 68%,transparent 71%);
+      animation:fireDrift 5.8s ease-in-out infinite alternate;
     }
-    .flame-ring.ring2{
-      inset:5%;
-      opacity:.42;
-      animation-duration:10s,3.8s;
-      animation-direction:reverse,alternate;
-      filter:blur(2px) drop-shadow(0 0 10px rgba(255,120,0,.35));
+    .rf.f2{
+      inset:6%;
+      opacity:.38;
+      animation-duration:7.6s;
+      animation-delay:-2s;
+      transform:rotate(35deg);
     }
-    .flame-ring.ring3{
+    .rf.f3{
       inset:-1%;
-      opacity:.28;
-      animation-duration:13s,4.5s;
-      filter:blur(3px) drop-shadow(0 0 12px rgba(255,80,0,.28));
+      opacity:.24;
+      animation-duration:9.2s;
+      animation-delay:-4s;
+      transform:rotate(-18deg);
+    }
+    @keyframes fireDrift{
+      0%{transform:rotate(-2deg) scale(.985)}
+      35%{transform:rotate(1.5deg) scale(1.012)}
+      70%{transform:rotate(-1deg) scale(1.025)}
+      100%{transform:rotate(2deg) scale(.995)}
     }
 
-    @keyframes flameFlow{
-      from{transform:rotate(0deg)}
-      to{transform:rotate(360deg)}
-    }
-    @keyframes flamePulse{
-      from{transform:scale(.985);opacity:.50}
-      to{transform:scale(1.025);opacity:.82}
-    }
-
-    .spark{
+    .ember{
       position:absolute;
-      bottom:8%;
       width:4px;height:4px;border-radius:50%;
-      background:#ff7a1a;
-      box-shadow:0 0 7px #ff3b00,0 0 13px #ffb02e;
+      background:#ff7b1d;
+      box-shadow:0 0 8px #ff3b00,0 0 14px #ffb134;
+      bottom:10%;
       opacity:0;
-      animation:sparkRise 4.8s ease-out infinite;
+      animation:emberNatural 4.9s cubic-bezier(.2,.65,.35,1) infinite;
     }
-    .sp1{left:8%;animation-delay:-.5s}
-    .sp2{left:22%;animation-delay:-2.1s}
-    .sp3{left:38%;animation-delay:-3.4s}
-    .sp4{right:30%;animation-delay:-1.4s}
-    .sp5{right:16%;animation-delay:-4.1s}
-    .sp6{right:5%;animation-delay:-2.8s}
-    @keyframes sparkRise{
-      0%{transform:translate3d(0,0,0) scale(.5);opacity:0}
-      16%{opacity:.85}
-      58%{transform:translate3d(10px,-70px,0) scale(1);opacity:.55}
-      100%{transform:translate3d(-8px,-145px,0) scale(.25);opacity:0}
+    .e1{left:9%;animation-delay:-.6s}
+    .e2{left:24%;animation-delay:-2.1s}
+    .e3{left:41%;animation-delay:-3.7s}
+    .e4{right:33%;animation-delay:-1.4s}
+    .e5{right:16%;animation-delay:-4.1s}
+    .e6{right:5%;animation-delay:-2.8s}
+    @keyframes emberNatural{
+      0%{transform:translate3d(0,0,0) scale(.4);opacity:0}
+      15%{opacity:.9}
+      48%{transform:translate3d(7px,-55px,0) scale(.9);opacity:.65}
+      75%{transform:translate3d(-4px,-95px,0) scale(.7);opacity:.35}
+      100%{transform:translate3d(10px,-145px,0) scale(.15);opacity:0}
     }
 
-    .fx-pizza-smoke{
+    .real-smoke{
       position:absolute;
       left:48%;
-      top:17%;
-      width:35%;
-      height:48%;
+      top:18%;
+      width:34%;
+      height:47%;
       pointer-events:none;
       z-index:3;
       overflow:visible;
     }
-    .smoke-puff{
+    .sm{
       position:absolute;
-      bottom:0;
-      width:28%;
-      height:55%;
+      bottom:-8%;
+      width:23%;
+      height:64%;
       border-radius:50%;
       background:
         radial-gradient(ellipse at center,
-          rgba(255,255,255,.18) 0%,
-          rgba(235,235,235,.11) 36%,
-          rgba(255,255,255,0) 72%);
-      filter:blur(14px);
+          rgba(255,255,255,.17) 0%,
+          rgba(230,230,230,.11) 34%,
+          rgba(255,255,255,.04) 52%,
+          rgba(255,255,255,0) 74%);
+      filter:url(#smokeDistort);
       opacity:0;
-      animation:smokeSlow 7.8s ease-in-out infinite;
+      animation:smokeOrganic 8.8s ease-in-out infinite;
     }
-    .p1{left:4%;animation-delay:-1.2s}
-    .p2{left:26%;animation-delay:-4.3s;animation-duration:9s}
-    .p3{left:51%;animation-delay:-2.6s;animation-duration:8.4s}
-    .p4{left:72%;animation-delay:-6.2s;animation-duration:9.6s}
-
-    @keyframes smokeSlow{
-      0%{transform:translate3d(0,20px,0) scale(.62);opacity:0}
-      18%{opacity:.24}
-      52%{transform:translate3d(10px,-55px,0) scale(1.02);opacity:.20}
-      100%{transform:translate3d(-8px,-125px,0) scale(1.36);opacity:0}
+    .sm.s1{left:5%;animation-delay:-1.1s}
+    .sm.s2{left:23%;animation-delay:-4.7s;animation-duration:10.2s}
+    .sm.s3{left:43%;animation-delay:-2.6s;animation-duration:9.5s}
+    .sm.s4{left:62%;animation-delay:-7.2s;animation-duration:11s}
+    .sm.s5{left:76%;animation-delay:-5.1s;animation-duration:9.8s}
+    @keyframes smokeOrganic{
+      0%{transform:translate3d(0,22px,0) scale(.55) rotate(-3deg);opacity:0}
+      14%{opacity:.22}
+      38%{transform:translate3d(7px,-28px,0) scale(.82) rotate(2deg);opacity:.24}
+      68%{transform:translate3d(-6px,-82px,0) scale(1.08) rotate(-2deg);opacity:.15}
+      100%{transform:translate3d(9px,-145px,0) scale(1.38) rotate(3deg);opacity:0}
     }
 
     @media(max-width:700px){
-      .fx-fire-logo{left:1.7%;top:6%;width:40%}
-      .fx-pizza-smoke{left:47%;top:20%;width:38%;height:44%}
-      .spark{width:3px;height:3px}
-    }
-
-    @media(prefers-reduced-motion:reduce){
-      .flame-ring,.spark,.smoke-puff{animation-duration:18s}
+      .real-fire{left:1.6%;top:5.4%;width:40%}
+      .real-smoke{left:47%;top:20%;width:38%;height:44%}
+      .ember{width:3px;height:3px}
     }
 
 </style>
@@ -343,25 +342,41 @@
 </div>
 <section class="animated-hero">
   <img class="hero-image" src="hero-pizza-do-kim.png" alt="Pizza do Kim">
-  <!-- Efeitos animados feitos por código: não troca a foto -->
-  <div class="fx-fire-logo" aria-hidden="true">
-    <span class="flame-ring ring1"></span>
-    <span class="flame-ring ring2"></span>
-    <span class="flame-ring ring3"></span>
-    <span class="spark sp1"></span>
-    <span class="spark sp2"></span>
-    <span class="spark sp3"></span>
-    <span class="spark sp4"></span>
-    <span class="spark sp5"></span>
-    <span class="spark sp6"></span>
+  <!-- efeitos orgânicos sobre a foto existente -->
+  <div class="real-fire" aria-hidden="true">
+    <i class="rf f1"></i><i class="rf f2"></i><i class="rf f3"></i>
+    <b class="ember e1"></b><b class="ember e2"></b><b class="ember e3"></b>
+    <b class="ember e4"></b><b class="ember e5"></b><b class="ember e6"></b>
   </div>
 
-  <div class="fx-pizza-smoke" aria-hidden="true">
-    <span class="smoke-puff p1"></span>
-    <span class="smoke-puff p2"></span>
-    <span class="smoke-puff p3"></span>
-    <span class="smoke-puff p4"></span>
+  <div class="real-smoke" aria-hidden="true">
+    <i class="sm s1"></i><i class="sm s2"></i><i class="sm s3"></i><i class="sm s4"></i><i class="sm s5"></i>
   </div>
+
+  <svg class="fx-defs" width="0" height="0" aria-hidden="true">
+    <filter id="fireDistort" x="-30%" y="-30%" width="160%" height="160%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.012 0.04" numOctaves="2" seed="7" result="noise">
+        <animate attributeName="baseFrequency"
+                 dur="5.5s"
+                 values="0.012 0.04;0.018 0.055;0.010 0.035;0.012 0.04"
+                 repeatCount="indefinite"/>
+      </feTurbulence>
+      <feDisplacementMap in="SourceGraphic" in2="noise" scale="18"
+                         xChannelSelector="R" yChannelSelector="G"/>
+      <feGaussianBlur stdDeviation="0.45"/>
+    </filter>
+
+    <filter id="smokeDistort" x="-80%" y="-80%" width="260%" height="260%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.008 0.025" numOctaves="3" seed="12" result="noise">
+        <animate attributeName="baseFrequency"
+                 dur="8s"
+                 values="0.008 0.025;0.012 0.032;0.006 0.021;0.008 0.025"
+                 repeatCount="indefinite"/>
+      </feTurbulence>
+      <feDisplacementMap in="SourceGraphic" in2="noise" scale="24"/>
+      <feGaussianBlur stdDeviation="8"/>
+    </filter>
+  </svg>
 
   <div class="smoke-layer">
     <span class="smoke s1"></span>
