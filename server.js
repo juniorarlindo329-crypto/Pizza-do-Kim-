@@ -25,7 +25,11 @@ function send(res, code, data, type="application/json; charset=utf-8", extraHead
     "Cache-Control": "no-store",
     ...extraHeaders
   });
-  res.end(type.startsWith("application/json") ? JSON.stringify(data) : data);
+  // Arquivos .json lidos do disco chegam como Buffer e devem ser enviados sem JSON.stringify.
+  const body = type.startsWith("application/json") && !Buffer.isBuffer(data)
+    ? JSON.stringify(data)
+    : data;
+  res.end(body);
 }
 function bodyText(req) {
   return new Promise((resolve,reject)=>{

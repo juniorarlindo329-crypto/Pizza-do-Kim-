@@ -19,5 +19,7 @@
       "sizes": "512x512",
       "type": "image/png"
     }
-  ]
+  ],
+  "id": "/cliente",
+  "prefer_related_applications": false
 }
