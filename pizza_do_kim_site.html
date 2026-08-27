@@ -470,10 +470,10 @@ body.light-theme .theme-toggle{background:#fffffff0;color:#382820;border-color:#
       box-shadow:inset 0 0 18px rgba(255,255,255,.012);
     }
     .sizes .choice .pizza-icon{
-      width:48px;height:48px;border:2px solid #ff5b19;border-radius:50%;
-      display:flex;align-items:center;justify-content:center;color:#ff671e;
-      font-size:28px;line-height:1;
-      box-shadow:0 0 0 4px rgba(255,93,24,.04);
+      width:52px;height:52px;
+      display:flex;align-items:center;justify-content:center;
+      font-size:38px;line-height:1;
+      filter:drop-shadow(0 0 8px rgba(255,93,24,.28));
     }
     .sizes .choice b{font-size:22px}
     .sizes .choice small{font-size:12px;color:#aaa;font-weight:600}
@@ -589,10 +589,64 @@ body.light-theme .theme-toggle{background:#fffffff0;color:#382820;border-color:#
       .hero-order-card h2{font-size:28px}
       .sizes{gap:7px}
       .sizes .choice{min-height:116px;border-radius:16px;padding:8px 3px}
-      .sizes .choice .pizza-icon{width:39px;height:39px;font-size:22px}
+      .sizes .choice .pizza-icon{width:42px;height:42px;font-size:31px}
       .sizes .choice b{font-size:18px}
       .sizes .choice small{font-size:9px}
       .bottom-app-nav{bottom:7px;width:calc(100% - 14px);border-radius:20px;min-height:64px}
+    }
+
+
+    /* Pizza inteira proporcional ao tamanho P / M / G / GG */
+    .sizes .choice .whole-pizza{
+      position:relative;
+      width:var(--pizza-size);
+      height:var(--pizza-size);
+      flex:0 0 var(--pizza-size);
+      border-radius:50%;
+      display:block;
+      background:
+        radial-gradient(circle at 34% 31%,#d9341e 0 8%,transparent 9%),
+        radial-gradient(circle at 67% 34%,#d9341e 0 8%,transparent 9%),
+        radial-gradient(circle at 39% 68%,#d9341e 0 8%,transparent 9%),
+        radial-gradient(circle at 69% 66%,#d9341e 0 8%,transparent 9%),
+        radial-gradient(circle at 51% 49%,#f5c95e 0 55%,#dc8b24 57% 72%,#9b5017 74% 100%);
+      border:2px solid #ff8a2b;
+      box-shadow:0 3px 8px rgba(0,0,0,.38),0 0 10px rgba(255,92,18,.12);
+      transition:transform .2s ease,filter .2s ease,box-shadow .2s ease;
+    }
+    .sizes .choice[data-size="P"]{--pizza-size:34px}
+    .sizes .choice[data-size="M"]{--pizza-size:42px}
+    .sizes .choice[data-size="G"]{--pizza-size:51px}
+    .sizes .choice[data-size="GG"]{--pizza-size:61px}
+
+    .sizes .choice .whole-pizza::before,
+    .sizes .choice .whole-pizza::after,
+    .sizes .choice .whole-pizza i{
+      content:"";
+      position:absolute;
+      left:50%;top:50%;
+      width:2px;height:92%;
+      background:rgba(117,58,15,.42);
+      transform:translate(-50%,-50%);
+      border-radius:999px;
+    }
+    .sizes .choice .whole-pizza::after{transform:translate(-50%,-50%) rotate(90deg)}
+    .sizes .choice .whole-pizza i:nth-child(1){transform:translate(-50%,-50%) rotate(45deg)}
+    .sizes .choice .whole-pizza i:nth-child(2){transform:translate(-50%,-50%) rotate(-45deg)}
+    .sizes .choice .whole-pizza i:nth-child(3),
+    .sizes .choice .whole-pizza i:nth-child(4){display:none}
+
+    .sizes .choice.active .whole-pizza{
+      transform:scale(1.04);
+      filter:brightness(1.08);
+      box-shadow:0 4px 10px rgba(0,0,0,.38),0 0 16px rgba(255,91,20,.48);
+    }
+
+    @media(max-width:620px){
+      .sizes .choice[data-size="P"]{--pizza-size:28px}
+      .sizes .choice[data-size="M"]{--pizza-size:34px}
+      .sizes .choice[data-size="G"]{--pizza-size:41px}
+      .sizes .choice[data-size="GG"]{--pizza-size:49px}
     }
 
 </style>
@@ -668,10 +722,10 @@ body.light-theme .theme-toggle{background:#fffffff0;color:#382820;border-color:#
 
         <label>Tamanho</label>
         <div class="sizes" id="sizes">
-          <button type="button" class="choice active" data-size="P"><span class="pizza-icon">◉</span><b>P</b><small>Pequena</small></button>
-          <button type="button" class="choice" data-size="M"><span class="pizza-icon">◉</span><b>M</b><small>Média</small></button>
-          <button type="button" class="choice" data-size="G"><span class="pizza-icon">◉</span><b>G</b><small>Grande</small></button>
-          <button type="button" class="choice" data-size="GG"><span class="pizza-icon">◉</span><b>GG</b><small>Gigante</small></button>
+          <button type="button" class="choice active" data-size="P"><span class="pizza-icon whole-pizza"><i></i><i></i><i></i><i></i></span><b>P</b><small>Pequena</small></button>
+          <button type="button" class="choice" data-size="M"><span class="pizza-icon whole-pizza"><i></i><i></i><i></i><i></i></span><b>M</b><small>Média</small></button>
+          <button type="button" class="choice" data-size="G"><span class="pizza-icon whole-pizza"><i></i><i></i><i></i><i></i></span><b>G</b><small>Grande</small></button>
+          <button type="button" class="choice" data-size="GG"><span class="pizza-icon whole-pizza"><i></i><i></i><i></i><i></i></span><b>GG</b><small>Gigante</small></button>
         </div>
 
         <label>Como deseja?</label>
