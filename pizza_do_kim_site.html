@@ -41,7 +41,7 @@
     .total{font-size:24px;font-weight:900;color:var(--red);border-top:1px dashed #bcaea5;padding-top:14px;margin-top:14px}
     .btn{width:100%;min-height:48px;border:0;border-radius:12px;font-size:16px;font-weight:800;cursor:pointer;margin-top:10px}
     .print{background:#26211f;color:#fff}
-    .whatsapp{background:var(--green);color:white}
+    .whatsapp{background:var(--green);color:white}.whatsapp:disabled{opacity:.65;cursor:not-allowed}
     .clear{background:#f1e9e4;color:#7b2525}
     .empty{color:var(--muted);font-size:14px;padding:8px 0}
     .info{font-size:14px;color:var(--muted);line-height:1.5}
@@ -288,7 +288,7 @@
 
       <div class="actions">
         <button class="btn print" id="printBtn" type="button">🖨️ Imprimir notinha</button>
-        <button class="btn whatsapp" id="whatsappBtn" type="button">🧾 Compartilhar comprovante</button>
+        <button class="btn whatsapp" id="whatsappBtn" type="button">✅ Enviar pedido para a pizzaria</button>
         <button class="btn clear" id="clearBtn" type="button">Limpar pedido</button>
       </div>
 
@@ -521,6 +521,70 @@
     render(); window.print();
   });
 
+  function buildSellerOrder(){
+    const items=state.items.map(i=>{
+      if(i.type==="drink"){
+        return {
+          title:i.name,
+          detail:"Bebida",
+          obs:"",
+          qty:i.qty,
+          unit:i.unit
+        };
+      }
+      if(i.type==="sweet"){
+        return {
+          title:`Pizza doce ${i.size}`,
+          detail:i.name,
+          obs:"",
+          qty:i.qty,
+          unit:i.unit
+        };
+      }
+      const sabor=i.mode==="meio" ? `½ ${i.f1} + ½ ${i.f2}` : i.f1;
+      const borda=`Borda: ${i.crust}${i.crust==="Com borda" ? " ("+i.crustFlavor+")" : ""}`;
+      return {
+        title:`Pizza ${i.size}`,
+        detail:`${sabor} • ${borda}`,
+        obs:i.obs || "",
+        qty:i.qty,
+        unit:i.unit
+      };
+    });
+
+    return {
+      customer:{
+        name:q("name").value.trim(),
+        phone:q("phone").value.trim(),
+        address:`${deliveryPlaceName()} — ${q("address").value.trim()}`,
+        reference:q("reference").value.trim(),
+        payment:q("payment").value,
+        change:q("payment").value==="Dinheiro" ? q("change").value.trim() : ""
+      },
+      items,
+      deliveryFee:getDeliveryFee()
+    };
+  }
+
+  function validateCustomer(){
+    if(!q("name").value.trim()){
+      alert("Digite o nome do cliente.");
+      q("name").focus();
+      return false;
+    }
+    if(!q("phone").value.trim()){
+      alert("Digite o telefone.");
+      q("phone").focus();
+      return false;
+    }
+    if(!q("address").value.trim()){
+      alert("Digite o endereço de entrega.");
+      q("address").focus();
+      return false;
+    }
+    return true;
+  }
+
   async function makeReceiptImage(){
     if(!state.items.length) throw new Error("empty");
 
@@ -646,31 +710,40 @@
   }
 
   q("whatsappBtn").addEventListener("click",async()=>{
-    if(!state.items.length){alert("Adicione pelo menos um item ao pedido.");return;}
+    if(!state.items.length){
+      alert("Adicione pelo menos um item ao pedido.");
+      return;
+    }
     if(!validateDelivery()) return;
-    try{
-      const blob=await makeReceiptImage();
-      const file=new File([blob],"comprovante-pizza-do-kim.png",{type:"image/png"});
+    if(!validateCustomer()) return;
 
-      if(navigator.share && navigator.canShare && navigator.canShare({files:[file]})){
-        await navigator.share({
-          files:[file],
-          title:"Comprovante - Pizza do Kim",
-          text:"Comprovante do pedido"
-        });
-      }else{
-        const a=document.createElement("a");
-        a.href=URL.createObjectURL(blob);
-        a.download="comprovante-pizza-do-kim.png";
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-        setTimeout(()=>URL.revokeObjectURL(a.href),1000);
-        alert("O comprovante foi salvo como imagem. Agora envie a imagem pelo WhatsApp.");
+    const btn=q("whatsappBtn");
+    const original=btn.textContent;
+    btn.disabled=true;
+    btn.textContent="⏳ Enviando pedido...";
+
+    try{
+      const response=await fetch("/api/orders",{
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify(buildSellerOrder())
+      });
+
+      const data=await response.json().catch(()=>({}));
+      if(!response.ok){
+        throw new Error(data.error || "Não foi possível enviar o pedido.");
       }
+
+      alert(`✅ Pedido #${data.number || ""} enviado para a Pizza do Kim!
+O pedido já apareceu no aplicativo do vendedor.`);
+      state.items=[];
+      render();
+      window.scrollTo({top:0,behavior:"smooth"});
     }catch(err){
-      if(err && err.name==="AbortError") return;
-      alert("Não foi possível gerar o comprovante neste navegador.");
+      alert("Não foi possível enviar o pedido para a pizzaria. Verifique sua internet e tente novamente.");
+    }finally{
+      btn.disabled=false;
+      btn.textContent=original;
     }
   });
 
