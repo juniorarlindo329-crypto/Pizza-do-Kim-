@@ -305,6 +305,38 @@
 
 <script>
 (() => {
+  const TUTORIAL_KEY="pizza_do_kim_tutorial_v2";
+  const tutorialById=id=>document.getElementById(id);
+  const tutorialBox=tutorialById("firstTutorial");
+  const tutorialSteps=[...document.querySelectorAll(".tutorial-step")];
+  const tutorialDots=[...document.querySelectorAll(".tutorial-dot")];
+  let tutorialIndex=0;
+
+  function showTutorialStep(){
+    tutorialSteps.forEach((el,i)=>el.classList.toggle("active",i===tutorialIndex));
+    tutorialDots.forEach((el,i)=>el.classList.toggle("active",i===tutorialIndex));
+    tutorialById("tutorialNext").textContent=tutorialIndex===tutorialSteps.length-1 ? "Começar pedido" : "Próximo";
+  }
+  function finishTutorial(){
+    localStorage.setItem(TUTORIAL_KEY,"seen");
+    tutorialBox.classList.add("hidden");
+  }
+
+  tutorialById("tutorialSkip").addEventListener("click",finishTutorial);
+  tutorialById("tutorialNext").addEventListener("click",()=>{
+    if(tutorialIndex<tutorialSteps.length-1){
+      tutorialIndex++;
+      showTutorialStep();
+    }else{
+      finishTutorial();
+    }
+  });
+
+  if(localStorage.getItem(TUTORIAL_KEY)!=="seen"){
+    tutorialBox.classList.remove("hidden");
+    showTutorialStep();
+  }
+
   // EDITE AQUI OS SABORES E PREÇOS
   const menu = [
     {name:"Calabresa", desc:"molho, mussarela, calabresa, azeitona e cebola", prices:{P:35, M:45, G:52, GG:60}},
