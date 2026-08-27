@@ -171,133 +171,30 @@
     }
     .print-only{display:none}
   
-    /* FOGO E FUMAÇA MAIS ORGÂNICOS, SEM TROCAR A FOTO */
-    .fx-defs{position:absolute;pointer-events:none}
-    .real-fire{
-      position:absolute;
-      left:2.5%;
-      top:5%;
-      width:39%;
-      aspect-ratio:1/1;
-      pointer-events:none;
-      z-index:3;
-      mix-blend-mode:screen;
-    }
-    .rf{
-      position:absolute;
-      inset:2%;
-      border-radius:50%;
-      filter:url(#fireDistort) drop-shadow(0 0 8px rgba(255,75,0,.55));
-      opacity:.58;
-      background:
-        conic-gradient(
-          from 10deg,
-          transparent 0 9%,
-          rgba(255,70,0,.72) 11%,
-          rgba(255,190,45,.95) 13%,
-          rgba(255,75,0,.70) 16%,
-          transparent 19% 31%,
-          rgba(255,90,0,.70) 34%,
-          rgba(255,210,70,.92) 36%,
-          transparent 40% 54%,
-          rgba(255,55,0,.76) 57%,
-          rgba(255,165,35,.90) 60%,
-          transparent 64% 77%,
-          rgba(255,82,0,.72) 80%,
-          rgba(255,196,52,.92) 83%,
-          transparent 87% 100%
-        );
-      -webkit-mask:radial-gradient(circle,transparent 61%,#000 63% 68%,transparent 71%);
-      mask:radial-gradient(circle,transparent 61%,#000 63% 68%,transparent 71%);
-      animation:fireDrift 5.8s ease-in-out infinite alternate;
-    }
-    .rf.f2{
-      inset:6%;
-      opacity:.38;
-      animation-duration:7.6s;
-      animation-delay:-2s;
-      transform:rotate(35deg);
-    }
-    .rf.f3{
-      inset:-1%;
-      opacity:.24;
-      animation-duration:9.2s;
-      animation-delay:-4s;
-      transform:rotate(-18deg);
-    }
-    @keyframes fireDrift{
-      0%{transform:rotate(-2deg) scale(.985)}
-      35%{transform:rotate(1.5deg) scale(1.012)}
-      70%{transform:rotate(-1deg) scale(1.025)}
-      100%{transform:rotate(2deg) scale(.995)}
-    }
-
-    .ember{
-      position:absolute;
-      width:4px;height:4px;border-radius:50%;
-      background:#ff7b1d;
-      box-shadow:0 0 8px #ff3b00,0 0 14px #ffb134;
-      bottom:10%;
+    /* Somente brasas suaves sobre a imagem original */
+    .embers-only{position:absolute;inset:0;pointer-events:none;z-index:3;overflow:hidden}
+    .embers-only i{
+      position:absolute;bottom:-8px;width:4px;height:4px;border-radius:50%;
+      background:#ff7a18;
+      box-shadow:0 0 7px #ff3b00,0 0 13px #ffad32;
       opacity:0;
-      animation:emberNatural 4.9s cubic-bezier(.2,.65,.35,1) infinite;
+      animation:emberOnly 6s ease-out infinite;
     }
-    .e1{left:9%;animation-delay:-.6s}
-    .e2{left:24%;animation-delay:-2.1s}
-    .e3{left:41%;animation-delay:-3.7s}
-    .e4{right:33%;animation-delay:-1.4s}
-    .e5{right:16%;animation-delay:-4.1s}
-    .e6{right:5%;animation-delay:-2.8s}
-    @keyframes emberNatural{
+    .embers-only i:nth-child(1){left:8%;animation-delay:-1s}
+    .embers-only i:nth-child(2){left:17%;animation-delay:-4.2s;width:3px;height:3px}
+    .embers-only i:nth-child(3){left:29%;animation-delay:-2.4s}
+    .embers-only i:nth-child(4){left:42%;animation-delay:-5.1s;width:3px;height:3px}
+    .embers-only i:nth-child(5){left:54%;animation-delay:-3.3s}
+    .embers-only i:nth-child(6){left:66%;animation-delay:-.7s;width:3px;height:3px}
+    .embers-only i:nth-child(7){left:76%;animation-delay:-4.8s}
+    .embers-only i:nth-child(8){left:87%;animation-delay:-2.1s;width:3px;height:3px}
+    .embers-only i:nth-child(9){left:94%;animation-delay:-5.7s}
+    @keyframes emberOnly{
       0%{transform:translate3d(0,0,0) scale(.4);opacity:0}
-      15%{opacity:.9}
-      48%{transform:translate3d(7px,-55px,0) scale(.9);opacity:.65}
-      75%{transform:translate3d(-4px,-95px,0) scale(.7);opacity:.35}
-      100%{transform:translate3d(10px,-145px,0) scale(.15);opacity:0}
-    }
-
-    .real-smoke{
-      position:absolute;
-      left:48%;
-      top:18%;
-      width:34%;
-      height:47%;
-      pointer-events:none;
-      z-index:3;
-      overflow:visible;
-    }
-    .sm{
-      position:absolute;
-      bottom:-8%;
-      width:23%;
-      height:64%;
-      border-radius:50%;
-      background:
-        radial-gradient(ellipse at center,
-          rgba(255,255,255,.17) 0%,
-          rgba(230,230,230,.11) 34%,
-          rgba(255,255,255,.04) 52%,
-          rgba(255,255,255,0) 74%);
-      filter:url(#smokeDistort);
-      opacity:0;
-      animation:smokeOrganic 8.8s ease-in-out infinite;
-    }
-    .sm.s1{left:5%;animation-delay:-1.1s}
-    .sm.s2{left:23%;animation-delay:-4.7s;animation-duration:10.2s}
-    .sm.s3{left:43%;animation-delay:-2.6s;animation-duration:9.5s}
-    .sm.s4{left:62%;animation-delay:-7.2s;animation-duration:11s}
-    .sm.s5{left:76%;animation-delay:-5.1s;animation-duration:9.8s}
-    @keyframes smokeOrganic{
-      0%{transform:translate3d(0,22px,0) scale(.55) rotate(-3deg);opacity:0}
-      14%{opacity:.22}
-      38%{transform:translate3d(7px,-28px,0) scale(.82) rotate(2deg);opacity:.24}
-      68%{transform:translate3d(-6px,-82px,0) scale(1.08) rotate(-2deg);opacity:.15}
-      100%{transform:translate3d(9px,-145px,0) scale(1.38) rotate(3deg);opacity:0}
-    }
-
-    @media(max-width:700px){
-      .real-fire{left:1.6%;top:5.4%;width:40%}
-      .real-smoke{left:47%;top:20%;width:38%;height:44%}
-      .ember{width:3px;height:3px}
+      12%{opacity:.75}
+      45%{transform:translate3d(8px,-80px,0) scale(.9);opacity:.6}
+      75%{transform:translate3d(-5px,-155px,0) scale(.65);opacity:.3}
+      100%{transform:translate3d(9px,-245px,0) scale(.15);opacity:0}
     }
 
 </style>
@@ -342,53 +239,11 @@
 </div>
 <section class="animated-hero">
   <img class="hero-image" src="hero-pizza-do-kim.png" alt="Pizza do Kim">
-  <!-- efeitos orgânicos sobre a foto existente -->
-  <div class="real-fire" aria-hidden="true">
-    <i class="rf f1"></i><i class="rf f2"></i><i class="rf f3"></i>
-    <b class="ember e1"></b><b class="ember e2"></b><b class="ember e3"></b>
-    <b class="ember e4"></b><b class="ember e5"></b><b class="ember e6"></b>
+  <div class="embers-only" aria-hidden="true">
+    <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
   </div>
 
-  <div class="real-smoke" aria-hidden="true">
-    <i class="sm s1"></i><i class="sm s2"></i><i class="sm s3"></i><i class="sm s4"></i><i class="sm s5"></i>
-  </div>
-
-  <svg class="fx-defs" width="0" height="0" aria-hidden="true">
-    <filter id="fireDistort" x="-30%" y="-30%" width="160%" height="160%">
-      <feTurbulence type="fractalNoise" baseFrequency="0.012 0.04" numOctaves="2" seed="7" result="noise">
-        <animate attributeName="baseFrequency"
-                 dur="5.5s"
-                 values="0.012 0.04;0.018 0.055;0.010 0.035;0.012 0.04"
-                 repeatCount="indefinite"/>
-      </feTurbulence>
-      <feDisplacementMap in="SourceGraphic" in2="noise" scale="18"
-                         xChannelSelector="R" yChannelSelector="G"/>
-      <feGaussianBlur stdDeviation="0.45"/>
-    </filter>
-
-    <filter id="smokeDistort" x="-80%" y="-80%" width="260%" height="260%">
-      <feTurbulence type="fractalNoise" baseFrequency="0.008 0.025" numOctaves="3" seed="12" result="noise">
-        <animate attributeName="baseFrequency"
-                 dur="8s"
-                 values="0.008 0.025;0.012 0.032;0.006 0.021;0.008 0.025"
-                 repeatCount="indefinite"/>
-      </feTurbulence>
-      <feDisplacementMap in="SourceGraphic" in2="noise" scale="24"/>
-      <feGaussianBlur stdDeviation="8"/>
-    </filter>
-  </svg>
-
-  <div class="smoke-layer">
-    <span class="smoke s1"></span>
-    <span class="smoke s2"></span>
-    <span class="smoke s3"></span>
-  </div>
-  <div class="embers">
-    <span class="ember"></span><span class="ember"></span><span class="ember"></span>
-    <span class="ember"></span><span class="ember"></span><span class="ember"></span>
-    <span class="ember"></span>
-  </div>
-  <div class="hero-content">
+<div class="hero-content">
     <div class="hero-copy">
       <h1>🍕 Pizza do Kim</h1>
       <p>Somente Delivery • São José do Jacuri - MG</p>
