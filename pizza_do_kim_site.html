@@ -47,6 +47,23 @@
     .info{font-size:14px;color:var(--muted);line-height:1.5}
     .price-note{font-size:13px;color:var(--muted);margin-top:8px}
     footer{text-align:center;color:var(--muted);font-size:13px;padding:12px 0}
+
+    .tutorial-overlay{position:fixed;inset:0;background:#0009;z-index:9999;display:flex;align-items:center;justify-content:center;padding:18px}
+    .tutorial-overlay.hidden{display:none}
+    .tutorial-card{width:min(100%,480px);background:#fff;border-radius:20px;padding:22px;box-shadow:0 20px 60px #0006}
+    .tutorial-step{display:none}
+    .tutorial-step.active{display:block}
+    .tutorial-icon{font-size:46px;margin-bottom:8px}
+    .tutorial-card h2{font-size:25px;margin:0 0 10px}
+    .tutorial-card p{font-size:16px;line-height:1.5;color:#5f5753;margin:0}
+    .tutorial-progress{display:flex;gap:7px;justify-content:center;margin:20px 0 14px}
+    .tutorial-dot{width:9px;height:9px;border-radius:50%;background:#ddd}
+    .tutorial-dot.active{background:var(--red)}
+    .tutorial-actions{display:flex;gap:10px}
+    .tutorial-actions button{flex:1;min-height:48px;border:0;border-radius:12px;font-size:15px;font-weight:800;cursor:pointer}
+    .tutorial-skip{background:#eee7e3;color:#5d2525}
+    .tutorial-next{background:var(--red);color:#fff}
+
     @media(max-width:800px){.layout{grid-template-columns:1fr}.summary{position:static}.sizes{grid-template-columns:repeat(2,1fr)}}
     @media(max-width:520px){.grid2{grid-template-columns:1fr}.brand h1{font-size:28px}}
     @media print{
@@ -59,6 +76,43 @@
   </style>
 </head>
 <body>
+<div id="firstTutorial" class="tutorial-overlay hidden" aria-modal="true" role="dialog">
+  <div class="tutorial-card">
+    <div class="tutorial-step active">
+      <div class="tutorial-icon">🍕</div>
+      <h2>Bem-vindo à Pizza do Kim!</h2>
+      <p>Esse tutorial rápido vai mostrar como fazer seu pedido. Ele aparece apenas na primeira vez que você entra.</p>
+    </div>
+    <div class="tutorial-step">
+      <div class="tutorial-icon">📏</div>
+      <h2>1. Monte sua pizza</h2>
+      <p>Escolha o tamanho P, M, G ou GG, depois escolha 1 sabor ou meio a meio. Você também pode escolher borda de Catupiry ou Cheddar.</p>
+    </div>
+    <div class="tutorial-step">
+      <div class="tutorial-icon">🥤</div>
+      <h2>2. Adicione outros itens</h2>
+      <p>Se quiser, adicione pizza doce e bebidas. Depois confira todos os itens no resumo do pedido.</p>
+    </div>
+    <div class="tutorial-step">
+      <div class="tutorial-icon">📍</div>
+      <h2>3. Informe a entrega</h2>
+      <p>Escolha obrigatoriamente o local da entrega. Os locais cadastrados têm a taxa mostrada no pedido. Se escolher “Outro”, digite o nome do lugar.</p>
+    </div>
+    <div class="tutorial-step">
+      <div class="tutorial-icon">💳</div>
+      <h2>4. Pagamento e envio</h2>
+      <p>Preencha seus dados, escolha a forma de pagamento, confira o total e envie o pedido. O pedido chega direto para a pizzaria.</p>
+    </div>
+
+    <div class="tutorial-progress">
+      <span class="tutorial-dot active"></span><span class="tutorial-dot"></span><span class="tutorial-dot"></span><span class="tutorial-dot"></span><span class="tutorial-dot"></span>
+    </div>
+    <div class="tutorial-actions">
+      <button type="button" id="tutorialSkip" class="tutorial-skip">Pular</button>
+      <button type="button" id="tutorialNext" class="tutorial-next">Próximo</button>
+    </div>
+  </div>
+</div>
 <header>
   <div class="head">
     <div class="brand">
