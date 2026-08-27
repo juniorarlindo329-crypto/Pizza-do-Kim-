@@ -4,64 +4,139 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>Pizza do Kim - Pedidos</title>
+<link rel="manifest" href="/manifest-vendedor.json">
+<meta name="theme-color" content="#0b0b0b">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Pizza do Kim">
+<link rel="apple-touch-icon" href="/icon-192.png">
 <style>
-:root{--red:#a71919;--dark:#211a18;--cream:#fff8ef;--green:#167a3e;--border:#eaded6}
+:root{
+  --bg:#080808;--panel:#111;--panel2:#171717;--line:#292929;--text:#f7f4f2;
+  --muted:#9d9692;--orange:#ff651d;--orange2:#ff8a36;--green:#22a75a;--red:#dc3b2b;
+}
 *{box-sizing:border-box}
-body{margin:0;font-family:Arial,Helvetica,sans-serif;background:var(--cream);color:var(--dark)}
-header{background:linear-gradient(135deg,#b71c1c,#831010);color:#fff;padding:22px}
-.wrap{max-width:1050px;margin:auto;padding:18px}
-.top{display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap}
-h1{margin:0;font-size:29px}.sub{opacity:.9;margin-top:5px}
-.status{padding:9px 12px;background:#ffffff1f;border:1px solid #ffffff44;border-radius:999px;font-weight:700}
-.toolbar{display:flex;gap:10px;flex-wrap:wrap;margin:18px 0}
-button,select{min-height:44px;border-radius:10px;font-size:15px}
-button{border:0;padding:10px 14px;font-weight:800;cursor:pointer}
-.refresh{background:#25201e;color:#fff}.clear{background:#eee1d9;color:#7b2222}
-.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:15px}
-.order{background:#fff;border:1px solid var(--border);border-radius:16px;padding:17px;box-shadow:0 6px 20px #4b22120c}
-.order.new{border:2px solid var(--red)}
-.order-head{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
-.order h2{font-size:20px;margin:0;color:var(--red)}
-.badge{font-size:12px;border-radius:999px;padding:6px 9px;background:#fff0ef;color:var(--red);font-weight:900}
-.meta{font-size:14px;color:#6e6460;line-height:1.5;margin-top:8px}
-.items{border-top:1px dashed #cfc1b9;border-bottom:1px dashed #cfc1b9;margin:13px 0;padding:8px 0}
-.item{padding:7px 0;line-height:1.4}
-.total{display:flex;justify-content:space-between;font-size:21px;font-weight:900;color:var(--red);margin:10px 0}
-.actions{display:flex;gap:9px;flex-wrap:wrap}
-.print{background:#24201e;color:#fff;flex:1}.done{background:var(--green);color:#fff;flex:1}.remove{background:#f0e7e2;color:#792626}
-.empty{background:white;border:1px dashed #cebdb4;border-radius:16px;padding:35px;text-align:center;color:#736964}
-.demo{background:#fff4d8;border:1px solid #ebcf84;padding:12px;border-radius:12px;margin-bottom:15px;font-size:14px;line-height:1.45}
+html{background:var(--bg)}
+body{margin:0;font-family:Arial,Helvetica,sans-serif;background:
+radial-gradient(circle at 50% -10%,#2a1309 0,#0b0b0b 34%,#080808 68%);
+color:var(--text);min-height:100vh;padding-bottom:88px}
+button,select,input{font:inherit}
+header{position:sticky;top:0;z-index:50;background:rgba(8,8,8,.90);backdrop-filter:blur(14px);border-bottom:1px solid #222}
+.wrap{max-width:1100px;margin:auto;padding:16px}
+.top{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.brand-wrap{display:flex;align-items:center;gap:12px}
+.app-logo{width:48px;height:48px;border-radius:50%;object-fit:cover;border:1px solid #3a2b25;box-shadow:0 0 18px #ff5a1d25}
+h1{margin:0;font-size:24px}.sub{margin-top:3px;color:var(--muted);font-size:13px}
+.status{display:inline-flex;align-items:center;gap:7px;padding:9px 12px;background:#101914;border:1px solid #244d34;border-radius:999px;color:#aef3c6;font-weight:800;font-size:12px}
+.hero-strip{max-width:1100px;margin:0 auto;padding:15px 16px 0}
+.hero-card{background:linear-gradient(145deg,#17110e,#0f0d0c);border:1px solid #35251e;border-radius:22px;padding:18px;box-shadow:0 14px 34px #0005}
+.hero-title{font-size:12px;letter-spacing:1.7px;color:var(--orange);font-weight:900}
+.hero-card h2{margin:5px 0 4px;font-size:28px}
+.hero-card p{margin:0;color:var(--muted);font-size:14px}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:15px}
+.stat{background:#0d0d0d;border:1px solid #272727;border-radius:16px;padding:14px}
+.stat span{display:block;color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.7px}
+.stat strong{display:block;font-size:24px;margin-top:4px}
+.stat.new strong{color:var(--orange)}
+.stat.done strong{color:#54d284}
+.stat.total strong{color:#fff}
+.toolbar{display:grid;grid-template-columns:1fr auto auto;gap:9px;margin:16px 0}
+.searchbox{position:relative}
+.searchbox input{width:100%;min-height:46px;border-radius:14px;background:#111;border:1px solid #292929;color:#fff;padding:0 14px 0 40px;outline:none}
+.searchbox::before{content:"⌕";position:absolute;left:14px;top:10px;color:#8d8581;font-size:23px}
+select{min-height:46px;border-radius:14px;background:#111;border:1px solid #292929;color:#fff;padding:0 12px}
+button{border:0;cursor:pointer}
+.refresh{min-height:46px;border-radius:14px;background:#191919;color:#fff;border:1px solid #313131;padding:0 14px;font-weight:800}
+.refresh:active,.btn-action:active{transform:scale(.97)}
+.install{background:linear-gradient(100deg,#ff621a,#e13b0e);border-color:#ff7d3b}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:14px}
+.order{background:linear-gradient(180deg,#121212,#0d0d0d);border:1px solid #2c2c2c;border-radius:22px;padding:17px;box-shadow:0 12px 28px #0004;position:relative;overflow:hidden}
+.order::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:#4b4b4b}
+.order.new::before{background:linear-gradient(#ff8b36,#e73b0d)}
+.order.new{border-color:#4a2a1d;box-shadow:0 12px 30px #0005,0 0 22px #ff5b1710}
+.order-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}
+.order h2{font-size:20px;margin:0;color:#fff}
+.order-code{color:var(--orange);font-weight:900}
+.badge{font-size:10px;letter-spacing:.7px;border-radius:999px;padding:7px 9px;font-weight:900}
+.badge-new{background:#34160d;color:#ff9a5e;border:1px solid #66301c}
+.badge-done{background:#102118;color:#7ee0a4;border:1px solid #245b38}
+.meta{font-size:13px;color:var(--muted);line-height:1.65;margin-top:10px}
+.customer-block{background:#0a0a0a;border:1px solid #242424;border-radius:14px;padding:12px;margin-top:12px}
+.customer-block strong{color:#e7ddd8}
+.items{border-top:1px solid #242424;border-bottom:1px solid #242424;margin:13px 0;padding:7px 0}
+.item{padding:10px 0;line-height:1.45;border-bottom:1px dashed #252525}
+.item:last-child{border-bottom:0}
+.item strong{color:#ff7b31}
+.money-line{display:flex;justify-content:space-between;gap:10px;color:#cfc5bf;font-size:13px;margin:5px 0}
+.total{display:flex;justify-content:space-between;font-size:23px;font-weight:900;color:#fff;margin:12px 0}
+.total span:last-child{color:var(--orange)}
+.actions{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:12px}
+.btn-action{min-height:48px;border-radius:14px;font-weight:900;transition:transform .16s ease,filter .18s ease}
+.print{background:linear-gradient(100deg,#ff621a,#de3b0d);color:#fff}
+.done{background:#15371f;color:#8be0aa;border:1px solid #2a6b3d}
+.remove{grid-column:1/-1;background:#1b1312;color:#e99b91;border:1px solid #4a2521}
+.empty{background:#111;border:1px dashed #343434;border-radius:20px;padding:38px;text-align:center;color:#8d8581}
+.bottom-nav{position:fixed;left:50%;bottom:8px;transform:translateX(-50%);width:min(calc(100% - 18px),760px);z-index:100;background:rgba(9,9,9,.94);backdrop-filter:blur(14px);border:1px solid #252525;border-radius:23px;padding:7px;display:grid;grid-template-columns:repeat(3,1fr);gap:5px;box-shadow:0 14px 34px #0007}
+.bottom-nav button{background:transparent;color:#888;border-radius:15px;min-height:56px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-size:11px}
+.bottom-nav button span{font-size:22px}
+.bottom-nav button.active{color:var(--orange);background:#17110e}
 @media print{
-body{background:#fff}.no-print,header{display:none!important}.wrap{padding:0}.grid{display:block}
-.order{display:none;border:0;box-shadow:none}.order.printing{display:block!important}
-.order.printing .actions{display:none}.order.printing{font-size:17px}
+body{background:#fff;color:#000;padding:0}.no-print,header,.hero-strip,.bottom-nav{display:none!important}.wrap{padding:0}.grid{display:block}
+.order{display:none;border:0;box-shadow:none;color:#000;background:#fff}.order.printing{display:block!important}
+.order.printing *{color:#000!important}.order.printing .actions{display:none}.order.printing::before{display:none}
+}
+@media(max-width:700px){
+.wrap{padding:12px}.hero-strip{padding:12px 12px 0}.stats{grid-template-columns:repeat(3,1fr)}.stat{padding:11px}.stat strong{font-size:20px}
+.toolbar{grid-template-columns:1fr 1fr}.searchbox{grid-column:1/-1}.grid{grid-template-columns:1fr}.order{border-radius:18px}.actions{grid-template-columns:1fr}
+.remove{grid-column:auto}
 }
 </style>
 </head>
 <body>
 <header>
- <div class="wrap top">
-  <div><h1>🍕 Pizza do Kim — Pedidos</h1><div class="sub">Painel do vendedor • somente impressão e controle</div></div>
-  <div class="status" id="connectionStatus">Conectando...</div>
- </div>
+  <div class="wrap top">
+    <div class="brand-wrap">
+      <img src="/icon-192.png" class="app-logo" alt="Pizza do Kim">
+      <div>
+        <h1>Pizza do Kim</h1>
+        <div class="sub">Painel do vendedor • pedidos em tempo real</div>
+      </div>
+    </div>
+    <div class="status" id="connectionStatus">Conectando...</div>
+  </div>
 </header>
 
-<div class="wrap">
-  <div class="demo no-print">
-    Este painel recebe automaticamente os pedidos enviados pelo site do cliente. Novos pedidos são atualizados a cada 3 segundos.
+<section class="hero-strip no-print">
+  <div class="hero-card">
+    <div class="hero-title">PAINEL OPERACIONAL</div>
+    <h2>Pedidos da pizzaria</h2>
+    <p>Receba, imprima e finalize os pedidos em um só lugar.</p>
+    <div class="stats">
+      <div class="stat new"><span>Novos</span><strong id="statNew">0</strong></div>
+      <div class="stat done"><span>Finalizados</span><strong id="statDone">0</strong></div>
+      <div class="stat total"><span>Total</span><strong id="statTotal">0</strong></div>
+    </div>
   </div>
+</section>
 
+<div class="wrap">
   <div class="toolbar no-print">
-    <button class="refresh" id="refreshNow">↻ Atualizar agora</button>
-    <button class="clear" id="clearDone">Limpar finalizados</button>
+    <div class="searchbox"><input id="searchOrders" type="search" placeholder="Buscar cliente, telefone ou pedido"></div>
     <select id="filter">
-      <option value="all">Todos os pedidos</option>
-      <option value="new">Somente novos</option>
+      <option value="all">Todos</option>
+      <option value="new">Novos</option>
       <option value="done">Finalizados</option>
     </select>
+    <button class="refresh" id="refreshNow" type="button">↻ Atualizar</button>
   </div>
-
   <div id="orders" class="grid"></div>
+</div>
+
+<nav class="bottom-nav no-print">
+  <button type="button" class="active" id="navOrders"><span>▣</span>Pedidos</button>
+  <button type="button" id="navRefresh"><span>↻</span>Atualizar</button>
+  <button type="button" id="navInstall"><span>⬇</span>Instalar</button>
+</nav>
 </div>
 
 <script>
@@ -107,7 +182,25 @@ body{background:#fff}.no-print,header{display:none!important}.wrap{padding:0}.gr
 
   function render(){
     const filter=document.getElementById("filter").value;
-    const visible=orders.filter(o=>filter==="all" || o.status===filter).sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt));
+    const term=(document.getElementById("searchOrders")?.value||"").trim().toLowerCase();
+
+    document.getElementById("statNew").textContent=orders.filter(o=>o.status==="new").length;
+    document.getElementById("statDone").textContent=orders.filter(o=>o.status==="done").length;
+    document.getElementById("statTotal").textContent=orders.length;
+
+    const visible=orders
+      .filter(o=>filter==="all" || o.status===filter)
+      .filter(o=>{
+        if(!term) return true;
+        const hay=[
+          o.number,
+          o.customer?.name,
+          o.customer?.phone,
+          o.customer?.address
+        ].join(" ").toLowerCase();
+        return hay.includes(term);
+      })
+      .sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt));
     const box=document.getElementById("orders");
 
     if(!visible.length){
@@ -119,19 +212,19 @@ body{background:#fff}.no-print,header{display:none!important}.wrap{padding:0}.gr
       <article class="order ${o.status==="new"?"new":""}" data-id="${esc(o.id)}">
         <div class="order-head">
           <div>
-            <h2>Pedido #${esc(o.number)}</h2>
-            <div class="meta">${formatDate(o.createdAt)}</div>
+            <h2>Pedido <span class="order-code">#${esc(o.number)}</span></h2>
+            <div class="meta">🕒 ${formatDate(o.createdAt)}</div>
           </div>
-          <span class="badge">${o.status==="new"?"NOVO":"FINALIZADO"}</span>
+          <span class="badge ${o.status==="new"?"badge-new":"badge-done"}">${o.status==="new"?"NOVO":"FINALIZADO"}</span>
         </div>
 
-        <div class="meta">
-          <strong>Cliente:</strong> ${esc(o.customer?.name||"-")}<br>
-          <strong>Telefone:</strong> ${esc(o.customer?.phone||"-")}<br>
-          <strong>Endereço:</strong> ${esc(o.customer?.address||"-")}<br>
-          ${o.customer?.reference?`<strong>Referência:</strong> ${esc(o.customer.reference)}<br>`:""}
-          <strong>Pagamento:</strong> ${esc(o.customer?.payment||"-")}
-          ${o.customer?.change?`<br><strong>Troco para:</strong> ${esc(o.customer.change)}`:""}
+        <div class="customer-block meta">
+          <strong>👤 ${esc(o.customer?.name||"-")}</strong><br>
+          📞 ${esc(o.customer?.phone||"-")}<br>
+          📍 ${esc(o.customer?.address||"-")}<br>
+          ${o.customer?.reference?`↳ ${esc(o.customer.reference)}<br>`:""}
+          💳 ${esc(o.customer?.payment||"-")}
+          ${o.customer?.change?`<br>💵 Troco para: ${esc(o.customer.change)}`:""}
         </div>
 
         <div class="items">
@@ -144,16 +237,14 @@ body{background:#fff}.no-print,header{display:none!important}.wrap{padding:0}.gr
             </div>`).join("")}
         </div>
 
-        <div class="meta">
-          Subtotal: ${money(o.subtotal)}<br>
-          Taxa de entrega: ${money(o.deliveryFee)}
-        </div>
+        <div class="money-line"><span>Subtotal</span><strong>${money(o.subtotal)}</strong></div>
+        ${Number(o.deliveryFee)>0?`<div class="money-line"><span>Taxa de entrega</span><strong>${money(o.deliveryFee)}</strong></div>`:""}
         <div class="total"><span>Total</span><span>${money(o.total)}</span></div>
 
         <div class="actions no-print">
-          <button class="print" data-action="print">🖨️ Imprimir pedido</button>
-          <button class="done" data-action="toggle">${o.status==="new"?"✓ Marcar finalizado":"↩ Reabrir"}</button>
-          <button class="remove" data-action="remove">Excluir</button>
+          <button class="btn-action print" data-action="print">🖨️ Imprimir</button>
+          <button class="btn-action done" data-action="toggle">${o.status==="new"?"✓ Finalizar":"↩ Reabrir"}</button>
+          <button class="btn-action remove" data-action="remove">🗑️ Excluir pedido</button>
         </div>
       </article>
     `).join("");
@@ -181,8 +272,30 @@ body{background:#fff}.no-print,header{display:none!important}.wrap{padding:0}.gr
   }
 
   document.getElementById("filter").addEventListener("change",render);
+  document.getElementById("searchOrders").addEventListener("input",render);
+
+  document.getElementById("navRefresh").addEventListener("click",loadOrders);
+  document.getElementById("navOrders").addEventListener("click",()=>window.scrollTo({top:0,behavior:"smooth"}));
+
+  let deferredPrompt=null;
+  window.addEventListener("beforeinstallprompt",e=>{
+    e.preventDefault();
+    deferredPrompt=e;
+  });
+  document.getElementById("navInstall").addEventListener("click",async()=>{
+    if(deferredPrompt){
+      deferredPrompt.prompt();
+      try{await deferredPrompt.userChoice}catch(e){}
+      deferredPrompt=null;
+    }else{
+      alert("No Chrome, toque no menu ⋮ e escolha “Adicionar à tela inicial” ou “Instalar app”.");
+    }
+  });
+  if("serviceWorker" in navigator){
+    navigator.serviceWorker.register("/service-worker.js").catch(()=>{});
+  }
   document.getElementById("refreshNow").addEventListener("click",loadOrders);
-  document.getElementById("clearDone").addEventListener("click",async()=>{
+  document.getElementById("clearDone")?.addEventListener("click",async()=>{
     const done=orders.filter(o=>o.status==="done");
     if(!done.length) return;
     if(!confirm(`Excluir ${done.length} pedido(s) finalizado(s)?`)) return;
