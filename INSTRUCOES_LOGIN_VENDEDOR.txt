@@ -1,0 +1,29 @@
+ATUALIZAÇÃO - LOGIN DO APLICATIVO DO VENDEDOR
+
+1) No GitHub:
+- Apague/substitua o server.js antigo.
+- Envie o arquivo server_login_vendedor.js renomeado para: server.js
+- Commit changes.
+
+2) No Render:
+- Abra o serviço Pizza-do-Kim.
+- Vá em Environment.
+- Add Environment Variable.
+- Key/Nome: SELLER_PASSWORD
+- Value/Valor: escolha a senha que somente a pizzaria saberá.
+- Salve.
+
+RECOMENDADO:
+- Adicione também:
+  Key: SESSION_SECRET
+  Value: uma sequência longa e aleatória (ex.: 40+ caracteres).
+
+3) Depois do novo deploy:
+- Cliente: /cliente continua abrindo normalmente.
+- Vendedor: /vendedor passa a abrir a tela de login.
+- Após colocar a senha correta, abre o painel normalmente.
+- A sessão fica ativa no aparelho por até 7 dias.
+- Para sair: /logout
+
+IMPORTANTE:
+Não coloque a senha dentro do GitHub. A senha deve ficar somente no Render em SELLER_PASSWORD.
