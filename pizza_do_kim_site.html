@@ -170,7 +170,138 @@
       .summary h2{color:#000}.card{box-shadow:none;border:0}.print-only{display:block!important}
     }
     .print-only{display:none}
-  </style>
+  
+    /* EFEITOS ANIMADOS SOBRE A FOTO ORIGINAL */
+    .fx-fire-logo{
+      position:absolute;
+      left:2.3%;
+      top:5.5%;
+      width:39%;
+      aspect-ratio:1/1;
+      pointer-events:none;
+      z-index:3;
+      mix-blend-mode:screen;
+    }
+
+    .flame-ring{
+      position:absolute;
+      inset:2%;
+      border-radius:50%;
+      background:
+        conic-gradient(
+          from 0deg,
+          transparent 0deg 18deg,
+          rgba(255,69,0,.88) 30deg,
+          rgba(255,174,35,.95) 48deg,
+          transparent 70deg 110deg,
+          rgba(255,77,0,.82) 128deg,
+          rgba(255,205,75,.9) 147deg,
+          transparent 172deg 230deg,
+          rgba(255,63,0,.9) 250deg,
+          rgba(255,166,28,.9) 270deg,
+          transparent 295deg 360deg
+        );
+      -webkit-mask:
+        radial-gradient(circle,transparent 62%,#000 64% 69%,transparent 71%);
+      mask:
+        radial-gradient(circle,transparent 62%,#000 64% 69%,transparent 71%);
+      filter:blur(1.2px) drop-shadow(0 0 8px rgba(255,70,0,.55));
+      opacity:.70;
+      animation:flameFlow 7.5s linear infinite, flamePulse 2.8s ease-in-out infinite alternate;
+    }
+    .flame-ring.ring2{
+      inset:5%;
+      opacity:.42;
+      animation-duration:10s,3.8s;
+      animation-direction:reverse,alternate;
+      filter:blur(2px) drop-shadow(0 0 10px rgba(255,120,0,.35));
+    }
+    .flame-ring.ring3{
+      inset:-1%;
+      opacity:.28;
+      animation-duration:13s,4.5s;
+      filter:blur(3px) drop-shadow(0 0 12px rgba(255,80,0,.28));
+    }
+
+    @keyframes flameFlow{
+      from{transform:rotate(0deg)}
+      to{transform:rotate(360deg)}
+    }
+    @keyframes flamePulse{
+      from{transform:scale(.985);opacity:.50}
+      to{transform:scale(1.025);opacity:.82}
+    }
+
+    .spark{
+      position:absolute;
+      bottom:8%;
+      width:4px;height:4px;border-radius:50%;
+      background:#ff7a1a;
+      box-shadow:0 0 7px #ff3b00,0 0 13px #ffb02e;
+      opacity:0;
+      animation:sparkRise 4.8s ease-out infinite;
+    }
+    .sp1{left:8%;animation-delay:-.5s}
+    .sp2{left:22%;animation-delay:-2.1s}
+    .sp3{left:38%;animation-delay:-3.4s}
+    .sp4{right:30%;animation-delay:-1.4s}
+    .sp5{right:16%;animation-delay:-4.1s}
+    .sp6{right:5%;animation-delay:-2.8s}
+    @keyframes sparkRise{
+      0%{transform:translate3d(0,0,0) scale(.5);opacity:0}
+      16%{opacity:.85}
+      58%{transform:translate3d(10px,-70px,0) scale(1);opacity:.55}
+      100%{transform:translate3d(-8px,-145px,0) scale(.25);opacity:0}
+    }
+
+    .fx-pizza-smoke{
+      position:absolute;
+      left:48%;
+      top:17%;
+      width:35%;
+      height:48%;
+      pointer-events:none;
+      z-index:3;
+      overflow:visible;
+    }
+    .smoke-puff{
+      position:absolute;
+      bottom:0;
+      width:28%;
+      height:55%;
+      border-radius:50%;
+      background:
+        radial-gradient(ellipse at center,
+          rgba(255,255,255,.18) 0%,
+          rgba(235,235,235,.11) 36%,
+          rgba(255,255,255,0) 72%);
+      filter:blur(14px);
+      opacity:0;
+      animation:smokeSlow 7.8s ease-in-out infinite;
+    }
+    .p1{left:4%;animation-delay:-1.2s}
+    .p2{left:26%;animation-delay:-4.3s;animation-duration:9s}
+    .p3{left:51%;animation-delay:-2.6s;animation-duration:8.4s}
+    .p4{left:72%;animation-delay:-6.2s;animation-duration:9.6s}
+
+    @keyframes smokeSlow{
+      0%{transform:translate3d(0,20px,0) scale(.62);opacity:0}
+      18%{opacity:.24}
+      52%{transform:translate3d(10px,-55px,0) scale(1.02);opacity:.20}
+      100%{transform:translate3d(-8px,-125px,0) scale(1.36);opacity:0}
+    }
+
+    @media(max-width:700px){
+      .fx-fire-logo{left:1.7%;top:6%;width:40%}
+      .fx-pizza-smoke{left:47%;top:20%;width:38%;height:44%}
+      .spark{width:3px;height:3px}
+    }
+
+    @media(prefers-reduced-motion:reduce){
+      .flame-ring,.spark,.smoke-puff{animation-duration:18s}
+    }
+
+</style>
 </head>
 <body>
 <div id="firstTutorial" class="tutorial-overlay hidden" aria-modal="true" role="dialog">
@@ -212,6 +343,26 @@
 </div>
 <section class="animated-hero">
   <img class="hero-image" src="hero-pizza-do-kim.png" alt="Pizza do Kim">
+  <!-- Efeitos animados feitos por código: não troca a foto -->
+  <div class="fx-fire-logo" aria-hidden="true">
+    <span class="flame-ring ring1"></span>
+    <span class="flame-ring ring2"></span>
+    <span class="flame-ring ring3"></span>
+    <span class="spark sp1"></span>
+    <span class="spark sp2"></span>
+    <span class="spark sp3"></span>
+    <span class="spark sp4"></span>
+    <span class="spark sp5"></span>
+    <span class="spark sp6"></span>
+  </div>
+
+  <div class="fx-pizza-smoke" aria-hidden="true">
+    <span class="smoke-puff p1"></span>
+    <span class="smoke-puff p2"></span>
+    <span class="smoke-puff p3"></span>
+    <span class="smoke-puff p4"></span>
+  </div>
+
   <div class="smoke-layer">
     <span class="smoke s1"></span>
     <span class="smoke s2"></span>
