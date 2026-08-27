@@ -334,9 +334,26 @@
       .choice::before,.add::before,.whatsapp::before{animation:none}
     }
 
+
+.theme-toggle{position:fixed;top:14px;right:14px;z-index:10000;border:1px solid #ff7a35;border-radius:999px;padding:10px 14px;background:#171311e8;color:#fff;font-weight:800;cursor:pointer;box-shadow:0 5px 18px #0004}
+body.light-theme{background:#f7f4f1;color:#2b211d}
+body.light-theme .card{background:#fff;color:#2c211d;border-color:#eadbd3;box-shadow:0 10px 26px #47281914}
+body.light-theme .card h2{color:#bd3614}
+body.light-theme label{color:#33251f}
+body.light-theme .info,body.light-theme .price-note,body.light-theme .summary small{color:#76665e}
+body.light-theme input,body.light-theme select,body.light-theme textarea{background:#fff;color:#2c211d;border-color:#dfd0c8}
+body.light-theme .choice{background:#fff;color:#493a33;border-color:#dfd0c8}
+body.light-theme .choice.active{background:#fff1e9;color:#b93613;border-color:#e45a25}
+body.light-theme .pizza-item{background:#fffaf7;border-color:#eadbd3}
+body.light-theme .summary-line{color:#342720}
+body.light-theme .clear,body.light-theme .mini-btn,body.light-theme .print{background:#f1e9e4;color:#3b2c25;border-color:#dfd0c8}
+body.light-theme .total{color:#bd3614;border-top-color:#eadbd3}
+body.light-theme .theme-toggle{background:#fffffff0;color:#382820;border-color:#e6c6b5}
+
 </style>
 </head>
 <body>
+<button id="themeToggle" class="theme-toggle" type="button">☀️ Claro</button>
 <div id="firstTutorial" class="tutorial-overlay hidden" aria-modal="true" role="dialog">
   <div class="tutorial-card">
     <div class="tutorial-step active">
@@ -1084,5 +1101,23 @@ O pedido já apareceu no aplicativo do vendedor.`);
   fillFlavors(); updatePrice(); render();
 })();
 </script>
+
+<script>
+(function(){
+  const key="pizza_do_kim_theme";
+  const btn=document.getElementById("themeToggle");
+  function apply(theme){
+    const light=theme==="light";
+    document.body.classList.toggle("light-theme",light);
+    btn.textContent=light ? "🌙 Escuro" : "☀️ Claro";
+    localStorage.setItem(key,light ? "light" : "dark");
+  }
+  apply(localStorage.getItem(key)||"dark");
+  btn.addEventListener("click",function(){
+    apply(document.body.classList.contains("light-theme") ? "dark" : "light");
+  });
+})();
+</script>
+
 </body>
 </html>
