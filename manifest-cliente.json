@@ -1,0 +1,23 @@
+{
+  "name": "Pizza do Kim - Delivery",
+  "short_name": "Pizza do Kim",
+  "description": "Aplicativo de pedidos da Pizza do Kim.",
+  "start_url": "/cliente",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#080808",
+  "theme_color": "#0b0b0b",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

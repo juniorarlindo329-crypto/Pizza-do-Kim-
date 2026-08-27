@@ -4,6 +4,13 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Pizza do Kim - Delivery</title>
+<link rel="manifest" href="/manifest-cliente.json">
+<meta name="theme-color" content="#0b0b0b">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Pizza do Kim">
+<link rel="apple-touch-icon" href="/icon-192.png">
   <style>
     :root{
       --red:#b71c1c;--red2:#8e1111;--cream:#fff8ef;--gold:#f2b84b;--dark:#211a18;
@@ -649,6 +656,35 @@ body.light-theme .theme-toggle{background:#fffffff0;color:#382820;border-color:#
       .sizes .choice[data-size="GG"]{--pizza-size:49px}
     }
 
+
+    .install-client-btn{
+      pointer-events:auto;
+      min-height:42px;
+      border:1px solid rgba(255,111,37,.65);
+      border-radius:999px;
+      padding:0 13px;
+      background:linear-gradient(100deg,rgba(255,91,17,.95),rgba(213,42,8,.95));
+      color:#fff;
+      font-size:11px;
+      font-weight:900;
+      box-shadow:0 8px 22px rgba(181,48,9,.28);
+      backdrop-filter:blur(8px);
+      cursor:pointer;
+      transition:transform .18s ease,filter .18s ease;
+      white-space:nowrap;
+    }
+    .install-client-btn:active{transform:scale(.96)}
+    .install-client-btn.installed{
+      background:rgba(15,15,15,.78);
+      border-color:#333;
+      color:#aaa;
+      box-shadow:none;
+    }
+    .standalone-install{position:absolute;z-index:10;right:12px;top:12px}
+    @media(max-width:620px){
+      .install-client-btn{min-height:38px;padding:0 9px;font-size:9px}
+    }
+
 </style>
 </head>
 <body>
@@ -694,6 +730,7 @@ body.light-theme .theme-toggle{background:#fffffff0;color:#382820;border-color:#
   <div class="hero-floating-controls">
     <button class="round-control" id="menuScrollBtn" type="button" aria-label="Ir para cardápio">☰</button>
     <div class="hero-right-controls">
+      <button class="install-client-btn" id="installClientApp" type="button">📲 Instalar app</button>
       <span class="delivery-chip">🛵 <b>SOMENTE DELIVERY</b></span>
       <button class="round-control cart-control" id="cartScrollBtn" type="button" aria-label="Ver pedido">🛒<span id="cartBadge">0</span></button>
     </div>
@@ -1467,6 +1504,63 @@ O pedido já apareceu no aplicativo do vendedor.`);
   if(items){
     new MutationObserver(refreshBadge).observe(items,{childList:true,subtree:true});
   }
+})();
+</script>
+
+
+<script>
+(function(){
+  let deferredInstallPrompt=null;
+  const btn=document.getElementById("installClientApp");
+
+  function isStandalone(){
+    return window.matchMedia("(display-mode: standalone)").matches ||
+           window.navigator.standalone===true;
+  }
+
+  function updateInstallButton(){
+    if(!btn) return;
+    if(isStandalone()){
+      btn.textContent="✓ Aplicativo instalado";
+      btn.disabled=true;
+      btn.classList.add("installed");
+    }else{
+      btn.textContent="📲 Instalar app";
+      btn.disabled=false;
+      btn.classList.remove("installed");
+    }
+  }
+
+  window.addEventListener("beforeinstallprompt",event=>{
+    event.preventDefault();
+    deferredInstallPrompt=event;
+    updateInstallButton();
+  });
+
+  window.addEventListener("appinstalled",()=>{
+    deferredInstallPrompt=null;
+    updateInstallButton();
+  });
+
+  btn?.addEventListener("click",async()=>{
+    if(isStandalone()) return;
+
+    if(deferredInstallPrompt){
+      deferredInstallPrompt.prompt();
+      try{ await deferredInstallPrompt.userChoice; }catch(e){}
+      deferredInstallPrompt=null;
+      updateInstallButton();
+      return;
+    }
+
+    alert("No Chrome, toque no menu ⋮ e escolha “Instalar app” ou “Adicionar à tela inicial”.");
+  });
+
+  if("serviceWorker" in navigator){
+    navigator.serviceWorker.register("/service-worker.js").catch(()=>{});
+  }
+
+  updateInstallButton();
 })();
 </script>
 
