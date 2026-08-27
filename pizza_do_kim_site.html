@@ -243,12 +243,30 @@
         </div>
         <label for="deliveryPlace">Local da entrega *</label>
 <select id="deliveryPlace" required>
-<option value="" selected disabled>Selecione o local</option>
-<option>Fonseca</option><option>Jatobá</option><option>Boa Vista</option>
-<option>Santa Cruz Cristaulat</option><option>Guaches</option><option>Bom Jardim</option>
-<option>Córrego das Flores</option><option>Outro</option>
+  <option value="" selected disabled>Selecione o local</option>
+
+  <option value="Piteira Jacuri">Piteira Jacuri</option>
+  <option value="Bairro Santo Expedito Jacuri">Bairro Santo Expedito Jacuri</option>
+  <option value="Bairro Novo Progresso Jacuri">Bairro Novo Progresso Jacuri</option>
+  <option value="Bairro Santa Edvingen Jacuri">Bairro Santa Edvingen Jacuri</option>
+  <option value="Bairro do Cleber Jacuri">Bairro do Cleber Jacuri</option>
+  <option value="Rua Nova Jacuri">Rua Nova Jacuri</option>
+  <option value="Rua Assunção Jacuri">Rua Assunção Jacuri</option>
+  <option value="Rua São Pedro Jacuri">Rua São Pedro Jacuri</option>
+  <option value="Avenida São João Jacuri">Avenida São João Jacuri</option>
+  <option value="Rua Vai e Volta Jacuri">Rua Vai e Volta Jacuri</option>
+  <option value="Centro Jacuri">Centro Jacuri</option>
+
+  <option value="Fonseca">Fonseca</option>
+  <option value="Jatobá">Jatobá</option>
+  <option value="Boa Vista">Boa Vista</option>
+  <option value="Santa Cruz Cristaulat">Santa Cruz Cristaulat</option>
+  <option value="Guaches">Guaches</option>
+  <option value="Bom Jardim">Bom Jardim</option>
+  <option value="Córrego das Flores">Córrego das Flores</option>
+
+  <option value="Outro">Outro</option>
 </select>
-<div class="price-note">Taxa para os locais cadastrados: R$ 7,00.</div>
 <div id="otherPlaceWrap" class="hidden">
 <label for="otherPlace">Digite o nome do lugar *</label>
 <input id="otherPlace" placeholder="Nome do bairro, comunidade ou local">
@@ -281,7 +299,7 @@
       <div id="items"><div class="empty">Nenhuma pizza adicionada ainda.</div></div>
 
       <div class="summary-line"><span>Subtotal</span><strong id="subtotal">R$ 0,00</strong></div>
-      <div class="summary-line"><span>Taxa de entrega</span><strong id="delivery">R$ 0,00</strong></div>
+      <div class="summary-line" id="deliveryRow"><span>Taxa de entrega</span><strong id="delivery">R$ 0,00</strong></div>
       <div class="summary-line total"><span>Total</span><span id="total">R$ 0,00</span></div>
 
       <div id="customerSummary" class="info" style="margin-top:18px"></div>
@@ -540,6 +558,7 @@
     const delivery=getDeliveryFee(); // Troque aqui se quiser taxa fixa, por exemplo: 5
     q("subtotal").textContent=brl(subtotal);
     q("delivery").textContent=brl(delivery);
+    q("deliveryRow").classList.toggle("hidden", delivery===0);
     q("total").textContent=brl(subtotal+delivery);
     q("customerSummary").innerHTML=customerText();
   }
@@ -690,7 +709,9 @@
     y+=12;
     ctx.font="22px Arial";
     ctx.fillText(`Subtotal: ${brl(subtotal)}`,pad,y); y+=line;
-    ctx.fillText(`Taxa de entrega: ${brl(delivery)}`,pad,y); y+=line;
+    if(delivery>0){
+      ctx.fillText(`Taxa de entrega: ${brl(delivery)}`,pad,y); y+=line;
+    }
     ctx.fillStyle="#9f1818";
     ctx.font="bold 34px Arial";
     ctx.fillText(`TOTAL: ${brl(subtotal+delivery)}`,pad,y); y+=58;
