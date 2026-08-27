@@ -376,6 +376,225 @@ body.light-theme .theme-toggle{background:#fffffff0;color:#382820;border-color:#
       .hero-info-pill{padding:6px 9px;font-size:11px}
     }
 
+
+    /* NOVO VISUAL APP — inspirado no modelo enviado */
+    body{
+      background:#050505;
+      color:#f7f4f2;
+      padding-bottom:88px;
+    }
+    .container{max-width:920px;padding:18px 14px 36px}
+    .layout{display:block}
+    .order-form{width:100%}
+    .summary{position:static;margin-top:18px}
+
+    .animated-hero{
+      max-width:1050px;
+      margin:0 auto;
+      border-bottom:0;
+      border-radius:0 0 28px 28px;
+      box-shadow:0 18px 45px rgba(0,0,0,.35);
+    }
+    .animated-hero::after{
+      background:linear-gradient(180deg,rgba(0,0,0,.10),rgba(0,0,0,.02) 58%,rgba(0,0,0,.44));
+    }
+    .hero-floating-controls{
+      position:absolute;z-index:9;left:18px;right:18px;top:18px;
+      display:flex;justify-content:space-between;align-items:center;
+      pointer-events:none;
+    }
+    .hero-right-controls{display:flex;gap:10px;align-items:center}
+    .round-control,.delivery-chip{
+      pointer-events:auto;
+      min-height:46px;
+      border:1px solid rgba(255,255,255,.16);
+      background:rgba(12,12,12,.72);
+      color:#fff;
+      backdrop-filter:blur(10px);
+      box-shadow:0 8px 24px rgba(0,0,0,.28);
+    }
+    .round-control{
+      width:48px;height:48px;border-radius:50%;font-size:21px;cursor:pointer;
+      transition:transform .18s ease,box-shadow .22s ease,border-color .22s ease;
+    }
+    .round-control:active{transform:scale(.94)}
+    .delivery-chip{border-radius:999px;padding:0 15px;display:flex;align-items:center;gap:7px;font-size:12px}
+    .cart-control{position:relative}
+    #cartBadge{
+      position:absolute;right:-4px;top:-5px;min-width:20px;height:20px;padding:0 5px;
+      display:flex;align-items:center;justify-content:center;border-radius:999px;
+      background:#ef2f1c;color:#fff;font-size:11px;font-weight:900;
+      border:2px solid #080808;
+    }
+
+    .hero-content{align-items:flex-end;padding:18px 20px}
+    .hero-copy{display:flex!important;width:100%;gap:8px;justify-content:flex-start}
+    .hero-info-pill{
+      background:rgba(8,8,8,.74);
+      border:1px solid rgba(255,255,255,.12);
+      color:#fff;
+      padding:9px 13px;
+      box-shadow:0 8px 20px rgba(0,0,0,.22);
+    }
+    .hero-rating{border-color:rgba(255,142,28,.40)}
+    .hero-copy .hero-info-pill:nth-child(2){display:none}
+
+    .card{
+      background:linear-gradient(180deg,#111,#0a0a0a);
+      border:1px solid #292929;
+      border-radius:26px;
+      padding:22px;
+      margin-bottom:16px;
+      box-shadow:0 16px 35px rgba(0,0,0,.25);
+    }
+    .hero-order-card{padding-top:24px}
+    .section-kicker{
+      color:#ff6b1a;font-size:11px;font-weight:900;letter-spacing:1.6px;margin-bottom:5px;
+    }
+    .hero-order-card h2{
+      text-align:center;font-size:34px;color:#fff;margin:0 0 2px;font-weight:900;
+    }
+    .hero-order-card h2 span{color:#ff6417}
+    .section-subtitle{text-align:center;color:#9d9692;margin:0 0 20px;font-size:16px}
+    .hero-order-card>label:first-of-type{display:none}
+
+    .sizes{
+      grid-template-columns:repeat(4,1fr);
+      gap:12px;
+      margin-bottom:18px;
+    }
+    .sizes .choice{
+      min-height:150px;
+      display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;
+      border-radius:20px;background:#111;border:1px solid #303030;color:#fff;
+      box-shadow:inset 0 0 18px rgba(255,255,255,.012);
+    }
+    .sizes .choice .pizza-icon{
+      width:48px;height:48px;border:2px solid #ff5b19;border-radius:50%;
+      display:flex;align-items:center;justify-content:center;color:#ff671e;
+      font-size:28px;line-height:1;
+      box-shadow:0 0 0 4px rgba(255,93,24,.04);
+    }
+    .sizes .choice b{font-size:22px}
+    .sizes .choice small{font-size:12px;color:#aaa;font-weight:600}
+    .sizes .choice.active{
+      background:linear-gradient(180deg,#18120f,#0e0c0b);
+      border-color:#ff611d;
+      color:#fff;
+      box-shadow:0 0 0 1px #ff611d,0 0 24px rgba(255,84,18,.28),inset 0 0 20px rgba(255,91,20,.06);
+    }
+
+    .hero-order-card>label:nth-of-type(2){display:none}
+    #modes{
+      display:grid;
+      grid-template-columns:1fr;
+      gap:12px;
+      margin:10px 0 18px;
+    }
+    #modes .choice{
+      min-height:84px;border-radius:19px;padding:12px 16px;
+      display:grid;grid-template-columns:52px 1fr 22px;align-items:center;text-align:left;
+      background:#121212;border:1px solid #2c2c2c;color:#fff;
+    }
+    #modes .choice .mode-icon{
+      width:44px;height:44px;border-radius:14px;background:#090909;
+      display:flex;align-items:center;justify-content:center;color:#ff671c;font-size:22px;
+      border:1px solid #2b2b2b;
+    }
+    #modes .choice span:nth-child(2){display:flex;flex-direction:column;gap:4px}
+    #modes .choice b{font-size:18px}
+    #modes .choice small{font-size:13px;color:#aaa;font-weight:500}
+    #modes .choice em{font-size:34px;font-style:normal;font-weight:300;color:#fff;text-align:right}
+    #modes .choice.active{
+      background:linear-gradient(100deg,#ef4c0d,#d5260d);
+      border-color:#ff6d27;
+      box-shadow:0 10px 24px rgba(196,47,12,.24);
+    }
+    #modes .choice.active small{color:#ffe5da}
+
+    input,select,textarea{
+      background:#121212;color:#fff;border:1px solid #333;border-radius:14px;
+      min-height:50px;
+    }
+    input:focus,select:focus,textarea:focus{
+      border-color:#ff6420;box-shadow:0 0 0 3px rgba(255,100,32,.10);outline:none;
+    }
+    label{color:#e9e4e1}
+    .info,.price-note{color:#9f9793}
+
+    .add{
+      min-height:56px;border-radius:16px;
+      background:linear-gradient(100deg,#ff5d0b,#e3270b);
+      border:1px solid #ff7a35;
+      box-shadow:0 10px 24px rgba(210,55,9,.18);
+      letter-spacing:.1px;
+    }
+    .btn{border-radius:16px}
+    .whatsapp{background:linear-gradient(100deg,#1ea452,#11753b)}
+    .print{background:#181818;border:1px solid #373737}
+    .clear,.mini-btn{background:#191919;color:#e3d9d4;border:1px solid #303030}
+    .pizza-item{background:#101010;border-color:#2b2b2b}
+    .pizza-item strong{color:#ff6d28}
+    .summary-line{color:#f1ece9}
+    .total{color:#ff681e;border-top-color:#343434}
+
+    .bottom-app-nav{
+      position:fixed;z-index:9000;left:50%;bottom:10px;transform:translateX(-50%);
+      width:min(calc(100% - 22px),850px);
+      min-height:70px;padding:7px 10px;
+      display:grid;grid-template-columns:repeat(4,1fr);gap:4px;
+      background:rgba(8,8,8,.92);
+      border:1px solid #252525;border-radius:24px;
+      backdrop-filter:blur(14px);
+      box-shadow:0 12px 35px rgba(0,0,0,.45);
+    }
+    .nav-item{
+      border:0;background:transparent;color:#8e8e8e;border-radius:16px;
+      display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;
+      font-size:11px;cursor:pointer;
+    }
+    .nav-item span{font-size:25px;line-height:1}
+    .nav-item b{font-size:11px}
+    .nav-item.active{color:#ff741e;text-shadow:0 0 12px rgba(255,95,18,.30)}
+    .nav-item:active{transform:scale(.96)}
+
+    .theme-toggle{
+      top:76px;right:16px;padding:8px 11px;font-size:11px;
+      background:rgba(10,10,10,.80);border-color:#343434;
+    }
+
+    footer{color:#777;padding-bottom:90px}
+    body.light-theme{
+      background:#f4f1ee;color:#271f1b;
+    }
+    body.light-theme .card{background:#fff;border-color:#eaded7;color:#2c221d}
+    body.light-theme .hero-order-card h2{color:#241b17}
+    body.light-theme .sizes .choice{background:#fff;color:#2a201b;border-color:#e2d5cf}
+    body.light-theme #modes .choice{background:#fff;color:#2a201b;border-color:#e2d5cf}
+    body.light-theme input,body.light-theme select,body.light-theme textarea{background:#fff;color:#2a201b;border-color:#ded1ca}
+    body.light-theme label{color:#2d231e}
+    body.light-theme .pizza-item{background:#fffaf7;border-color:#e5d9d2}
+    body.light-theme .summary-line{color:#30251f}
+
+    @media(max-width:620px){
+      .animated-hero{border-radius:0 0 20px 20px}
+      .hero-floating-controls{left:10px;right:10px;top:10px}
+      .round-control{width:40px;height:40px;min-height:40px;font-size:17px}
+      .delivery-chip{min-height:40px;padding:0 10px;font-size:9px}
+      .hero-content{padding:10px}
+      .hero-copy{gap:5px}
+      .hero-info-pill{font-size:9px!important;padding:6px 8px!important}
+      .container{padding:12px 10px 26px}
+      .card{border-radius:20px;padding:17px}
+      .hero-order-card h2{font-size:28px}
+      .sizes{gap:7px}
+      .sizes .choice{min-height:116px;border-radius:16px;padding:8px 3px}
+      .sizes .choice .pizza-icon{width:39px;height:39px;font-size:22px}
+      .sizes .choice b{font-size:18px}
+      .sizes .choice small{font-size:9px}
+      .bottom-app-nav{bottom:7px;width:calc(100% - 14px);border-radius:20px;min-height:64px}
+    }
+
 </style>
 </head>
 <body>
@@ -418,6 +637,13 @@ body.light-theme .theme-toggle{background:#fffffff0;color:#382820;border-color:#
   </div>
 </div>
 <section class="animated-hero">
+  <div class="hero-floating-controls">
+    <button class="round-control" id="menuScrollBtn" type="button" aria-label="Ir para cardápio">☰</button>
+    <div class="hero-right-controls">
+      <span class="delivery-chip">🛵 <b>SOMENTE DELIVERY</b></span>
+      <button class="round-control cart-control" id="cartScrollBtn" type="button" aria-label="Ver pedido">🛒<span id="cartBadge">0</span></button>
+    </div>
+  </div>
   <img class="hero-image" src="hero-pizza-do-kim.png" alt="Pizza do Kim">
   <div class="embers-only" aria-hidden="true">
     <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
@@ -434,22 +660,24 @@ body.light-theme .theme-toggle{background:#fffffff0;color:#382820;border-color:#
 
 <div class="container">
   <div class="layout">
-    <main class="order-form">
-      <section class="card">
-        <h2>1. Monte sua pizza</h2>
+    <main class="order-form" id="inicio">
+      <section class="card hero-order-card">
+        <div class="section-kicker">MONTE DO SEU JEITO</div>
+        <h2>Monte sua <span>pizza</span></h2>
+        <p class="section-subtitle">Escolha o tamanho</p>
 
         <label>Tamanho</label>
         <div class="sizes" id="sizes">
-          <button type="button" class="choice active" data-size="P">P</button>
-          <button type="button" class="choice" data-size="M">M</button>
-          <button type="button" class="choice" data-size="G">G</button>
-          <button type="button" class="choice" data-size="GG">GG</button>
+          <button type="button" class="choice active" data-size="P"><span class="pizza-icon">◉</span><b>P</b><small>Pequena</small></button>
+          <button type="button" class="choice" data-size="M"><span class="pizza-icon">◉</span><b>M</b><small>Média</small></button>
+          <button type="button" class="choice" data-size="G"><span class="pizza-icon">◉</span><b>G</b><small>Grande</small></button>
+          <button type="button" class="choice" data-size="GG"><span class="pizza-icon">◉</span><b>GG</b><small>Gigante</small></button>
         </div>
 
         <label>Como deseja?</label>
         <div class="modes" id="modes">
-          <button type="button" class="choice active" data-mode="inteira">1 sabor</button>
-          <button type="button" class="choice" data-mode="meio">Meio a meio</button>
+          <button type="button" class="choice active" data-mode="inteira"><span class="mode-icon">🍕</span><span><b>1 sabor</b><small>Escolha um sabor</small></span><em>›</em></button>
+          <button type="button" class="choice" data-mode="meio"><span class="mode-icon">◐</span><span><b>Meio a meio</b><small>Escolha dois sabores</small></span><em>›</em></button>
         </div>
 
         <div class="grid2">
@@ -627,7 +855,7 @@ body.light-theme .theme-toggle{background:#fffffff0;color:#382820;border-color:#
     </aside>
   </div>
   <canvas id="receiptCanvas" width="900" height="1200" style="display:none"></canvas>
-  <footer>Pizza do Kim — sistema de pedidos</footer>
+  <footer id="contato">Pizza do Kim — sistema de pedidos</footer>
 </div>
 
 <script>
@@ -1142,6 +1370,49 @@ O pedido já apareceu no aplicativo do vendedor.`);
   btn.addEventListener("click",function(){
     apply(document.body.classList.contains("light-theme") ? "dark" : "light");
   });
+})();
+</script>
+
+
+<nav class="bottom-app-nav" aria-label="Navegação do aplicativo">
+  <button type="button" class="nav-item active" data-target="inicio"><span>⌂</span><b>Início</b></button>
+  <button type="button" class="nav-item" data-target="meuPedido"><span>▣</span><b>Meu pedido</b></button>
+  <button type="button" class="nav-item" data-target="contato"><span>☎</span><b>Contato</b></button>
+  <button type="button" class="nav-item" id="themeNavBtn"><span>◐</span><b>Tema</b></button>
+</nav>
+
+
+<script>
+(function(){
+  function scrollToId(id){
+    const el=document.getElementById(id);
+    if(el) el.scrollIntoView({behavior:"smooth",block:"start"});
+  }
+  document.getElementById("menuScrollBtn")?.addEventListener("click",()=>scrollToId("inicio"));
+  document.getElementById("cartScrollBtn")?.addEventListener("click",()=>scrollToId("meuPedido"));
+  document.querySelectorAll(".bottom-app-nav .nav-item[data-target]").forEach(btn=>{
+    btn.addEventListener("click",()=>{
+      document.querySelectorAll(".bottom-app-nav .nav-item").forEach(b=>b.classList.remove("active"));
+      btn.classList.add("active");
+      scrollToId(btn.dataset.target);
+    });
+  });
+  document.getElementById("themeNavBtn")?.addEventListener("click",()=>{
+    document.getElementById("themeToggle")?.click();
+  });
+
+  const badge=document.getElementById("cartBadge");
+  const items=document.getElementById("items");
+  function refreshBadge(){
+    if(!badge||!items)return;
+    const count=items.querySelectorAll(".pizza-item").length;
+    badge.textContent=count;
+    badge.style.display=count?"flex":"none";
+  }
+  refreshBadge();
+  if(items){
+    new MutationObserver(refreshBadge).observe(items,{childList:true,subtree:true});
+  }
 })();
 </script>
 
