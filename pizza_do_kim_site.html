@@ -187,7 +187,19 @@
           <div><label for="name">Nome</label><input id="name" placeholder="Nome do cliente"></div>
           <div><label for="phone">Telefone</label><input id="phone" placeholder="(33) 99999-9999"></div>
         </div>
-        <label for="address">Endereço de entrega</label>
+        <label for="deliveryPlace">Local da entrega *</label>
+<select id="deliveryPlace" required>
+<option value="" selected disabled>Selecione o local</option>
+<option>Fonseca</option><option>Jatobá</option><option>Boa Vista</option>
+<option>Santa Cruz Cristaulat</option><option>Guaches</option><option>Bom Jardim</option>
+<option>Córrego das Flores</option><option>Outro</option>
+</select>
+<div class="price-note">Taxa para os locais cadastrados: R$ 7,00.</div>
+<div id="otherPlaceWrap" class="hidden">
+<label for="otherPlace">Digite o nome do lugar *</label>
+<input id="otherPlace" placeholder="Nome do bairro, comunidade ou local">
+</div>
+<label for="address">Endereço de entrega</label>
         <input id="address" placeholder="Rua, número, bairro">
         <div class="grid2">
           <div><label for="reference">Referência</label><input id="reference" placeholder="Ex.: perto da praça"></div>
@@ -222,8 +234,7 @@
 
       <div class="actions">
         <button class="btn print" id="printBtn" type="button">🖨️ Imprimir notinha</button>
-        <button class="btn whatsapp" id="sendStoreBtn" type="button">✅ Enviar pedido para a pizzaria</button>
-        <button class="btn clear" id="whatsappBtn" type="button">🧾 Compartilhar comprovante</button>
+        <button class="btn whatsapp" id="whatsappBtn" type="button">🧾 Compartilhar comprovante</button>
         <button class="btn clear" id="clearBtn" type="button">Limpar pedido</button>
       </div>
 
@@ -394,6 +405,18 @@
     return s.replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));
   }
 
+  function deliveryPlaceName(){
+    return q("deliveryPlace").value==="Outro" ? q("otherPlace").value.trim() : q("deliveryPlace").value;
+  }
+  function getDeliveryFee(){
+    return ["Fonseca","Jatobá","Boa Vista","Santa Cruz Cristaulat","Guaches","Bom Jardim","Córrego das Flores"].includes(q("deliveryPlace").value) ? 7 : 0;
+  }
+  function validateDelivery(){
+    if(!q("deliveryPlace").value){ alert("Escolha o local da entrega."); q("deliveryPlace").focus(); return false; }
+    if(q("deliveryPlace").value==="Outro" && !q("otherPlace").value.trim()){ alert("Digite o nome do local da entrega."); q("otherPlace").focus(); return false; }
+    return true;
+  }
+
   function render(){
     const box=q("items");
     if(!state.items.length){
@@ -428,7 +451,7 @@
       box.querySelectorAll(".remove").forEach(b=>b.addEventListener("click",()=>removeItem(+b.dataset.id)));
     }
     const subtotal=state.items.reduce((s,i)=>s+i.qty*i.unit,0);
-    const delivery=0; // Troque aqui se quiser taxa fixa, por exemplo: 5
+    const delivery=getDeliveryFee(); // Troque aqui se quiser taxa fixa, por exemplo: 5
     q("subtotal").textContent=brl(subtotal);
     q("delivery").textContent=brl(delivery);
     q("total").textContent=brl(subtotal+delivery);
@@ -439,6 +462,7 @@
   q("payment").addEventListener("change",render);
 
   q("printBtn").addEventListener("click",()=>{
+    if(!validateDelivery()) return;
     if(!state.items.length){alert("Adicione pelo menos uma pizza ao pedido.");return;}
     render(); window.print();
   });
@@ -512,7 +536,7 @@
     });
 
     const subtotal=state.items.reduce((s,i)=>s+i.qty*i.unit,0);
-    const delivery=0;
+    const delivery=getDeliveryFee();
     y+=12;
     ctx.font="22px Arial";
     ctx.fillText(`Subtotal: ${brl(subtotal)}`,pad,y); y+=line;
@@ -528,6 +552,7 @@
     const details=[
       q("name").value.trim() ? `Cliente: ${q("name").value.trim()}` : "",
       q("phone").value.trim() ? `Telefone: ${q("phone").value.trim()}` : "",
+      deliveryPlaceName() ? `Local: ${deliveryPlaceName()}` : "",
       q("address").value.trim() ? `Endereço: ${q("address").value.trim()}` : "",
       q("reference").value.trim() ? `Referência: ${q("reference").value.trim()}` : "",
       `Pagamento: ${q("payment").value}`,
@@ -566,66 +591,9 @@
     ctx.fillText(current,x,y);
   }
 
-  function buildServerOrder(){
-    const subtotal=state.items.reduce((s,i)=>s+i.qty*i.unit,0);
-    const deliveryFee=0;
-    const serverItems=state.items.map(i=>{
-      if(i.type==="drink"){
-        return {title:i.name, detail:"Bebida", qty:i.qty, unit:i.unit, obs:""};
-      }
-      if(i.type==="sweet"){
-        return {title:`Pizza doce ${i.size}`, detail:i.name, qty:i.qty, unit:i.unit, obs:""};
-      }
-      const sabor=i.mode==="meio" ? `1/2 ${i.f1} + 1/2 ${i.f2}` : i.f1;
-      const borda=`Borda: ${i.crust}${i.crust==="Com borda" ? " ("+i.crustFlavor+")" : ""}`;
-      return {title:`Pizza ${i.size}`, detail:`${sabor} • ${borda}`, qty:i.qty, unit:i.unit, obs:i.obs||""};
-    });
-    return {
-      customer:{
-        name:q("name").value.trim(),
-        phone:q("phone").value.trim(),
-        address:q("address").value.trim(),
-        reference:q("reference").value.trim(),
-        payment:q("payment").value,
-        change:q("payment").value==="Dinheiro" ? q("change").value.trim() : ""
-      },
-      items:serverItems,
-      subtotal,
-      deliveryFee,
-      total:subtotal+deliveryFee
-    };
-  }
-
-  q("sendStoreBtn").addEventListener("click",async()=>{
-    if(!state.items.length){alert("Adicione pelo menos um item ao pedido.");return;}
-    if(!q("name").value.trim() || !q("phone").value.trim() || !q("address").value.trim()){
-      alert("Preencha nome, telefone e endereço antes de enviar.");
-      return;
-    }
-    const btn=q("sendStoreBtn");
-    const old=btn.textContent;
-    btn.disabled=true;
-    btn.textContent="Enviando...";
-    try{
-      const r=await fetch("/api/orders",{
-        method:"POST",
-        headers:{"Content-Type":"application/json"},
-        body:JSON.stringify(buildServerOrder())
-      });
-      if(!r.ok) throw new Error("Falha no envio");
-      const data=await r.json();
-      alert(`Pedido #${data.number} enviado para a pizzaria!`);
-      btn.textContent="✅ Pedido enviado";
-      setTimeout(()=>{btn.textContent=old;btn.disabled=false},1800);
-    }catch(e){
-      alert("Não foi possível enviar. Abra este site pelo servidor da Pizza do Kim.");
-      btn.textContent=old;
-      btn.disabled=false;
-    }
-  });
-
   q("whatsappBtn").addEventListener("click",async()=>{
     if(!state.items.length){alert("Adicione pelo menos um item ao pedido.");return;}
+    if(!validateDelivery()) return;
     try{
       const blob=await makeReceiptImage();
       const file=new File([blob],"comprovante-pizza-do-kim.png",{type:"image/png"});
@@ -657,6 +625,15 @@
       state.items=[]; render();
     }
   });
+
+    q("deliveryPlace").addEventListener("change",()=>{
+    const other=q("deliveryPlace").value==="Outro";
+    q("otherPlaceWrap").classList.toggle("hidden",!other);
+    q("otherPlace").required=other;
+    if(!other) q("otherPlace").value="";
+    render();
+  });
+  q("otherPlace").addEventListener("input",render);
 
   fillFlavors(); updatePrice(); render();
 })();
