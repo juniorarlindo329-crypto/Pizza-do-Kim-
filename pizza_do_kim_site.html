@@ -685,6 +685,48 @@ body.light-theme .theme-toggle{background:#fffffff0;color:#382820;border-color:#
       .install-client-btn{min-height:38px;padding:0 9px;font-size:9px}
     }
 
+
+    .tracking-card{
+      margin:0 0 16px;
+      padding:16px;
+      border-radius:18px;
+      background:linear-gradient(145deg,#171310,#0d0d0d);
+      border:1px solid #3b2b23;
+      box-shadow:0 10px 26px rgba(0,0,0,.22);
+    }
+    .tracking-card.hidden{display:none}
+    .tracking-top{display:flex;align-items:center;gap:12px}
+    .tracking-icon{
+      width:48px;height:48px;border-radius:15px;
+      display:flex;align-items:center;justify-content:center;
+      background:#24140d;border:1px solid #5c2d18;font-size:25px;
+    }
+    .tracking-top small{display:block;color:#ff7a31;font-size:9px;font-weight:900;letter-spacing:1.3px;margin-bottom:3px}
+    .tracking-top strong{display:block;color:#fff;font-size:17px}
+    .tracking-card p{color:#aaa19c;font-size:13px;line-height:1.45;margin:10px 0 13px}
+    .tracking-progress{display:flex;align-items:center;padding:0 6px}
+    .track-step{width:14px;height:14px;border-radius:50%;background:#36312e;border:2px solid #554943;flex:none}
+    .track-step.active{background:#ff651d;border-color:#ff9a5c;box-shadow:0 0 12px rgba(255,101,29,.5)}
+    .track-line{height:3px;flex:1;background:#36312e}
+    .tracking-card.delivering .track-line{background:linear-gradient(90deg,#ff651d,#ff8f42)}
+    .tracking-card.delivering #trackDelivery{background:#22a75a;border-color:#7ae8a4;box-shadow:0 0 12px rgba(34,167,90,.45)}
+    .tracking-labels{display:flex;justify-content:space-between;gap:12px;color:#8f8884;font-size:9px;margin-top:6px}
+    .tracking-labels span:last-child{text-align:right}
+    .tracking-number{margin-top:10px;color:#6f6864;font-size:11px}
+    body.light-theme .tracking-card{background:#fff8f3;border-color:#ead8cf}
+    body.light-theme .tracking-top strong{color:#2c211c}
+    body.light-theme .tracking-card p{color:#75665f}
+
+
+    .notify-btn{
+      width:100%;min-height:46px;margin-top:12px;border:1px solid #ff7a35;border-radius:14px;
+      background:linear-gradient(100deg,#ff621a,#dc360d);color:#fff;font-weight:900;cursor:pointer;
+      box-shadow:0 8px 20px rgba(197,52,10,.20)
+    }
+    .notify-btn.enabled{background:#15371f;border-color:#2e7042;color:#9be3b5}
+    .notify-note{font-size:10px;color:#8f8782;line-height:1.4;margin-top:7px;text-align:center}
+    body.light-theme .notify-note{color:#786c66}
+
 </style>
 </head>
 <body>
@@ -924,6 +966,29 @@ body.light-theme .theme-toggle{background:#fffffff0;color:#382820;border-color:#
         <hr>
       </div>
       <h2>Seu pedido</h2>
+      <div id="orderTracking" class="tracking-card hidden" aria-live="polite">
+        <div class="tracking-top">
+          <span class="tracking-icon" id="trackingIcon">🍕</span>
+          <div>
+            <small>ACOMPANHAMENTO</small>
+            <strong id="trackingTitle">Pedido recebido</strong>
+          </div>
+        </div>
+        <p id="trackingText">A pizzaria recebeu seu pedido.</p>
+        <div class="tracking-progress">
+          <span class="track-step active" id="trackReceived"></span>
+          <span class="track-line"></span>
+          <span class="track-step" id="trackDelivery"></span>
+        </div>
+        <div class="tracking-labels">
+          <span>Recebido</span>
+          <span>Saindo para entrega</span>
+        </div>
+        <div class="tracking-number" id="trackingNumber"></div>
+        <button type="button" class="notify-btn" id="enableNotifications">🔔 Ativar notificações</button>
+        <div class="notify-note" id="notifyNote">Ative uma vez para receber “Sua pizza saiu para entrega” mesmo com o app fechado.</div>
+      </div>
+
       <div id="items"><div class="empty">Nenhuma pizza adicionada ainda.</div></div>
 
       <div class="summary-line"><span>Subtotal</span><strong id="subtotal">R$ 0,00</strong></div>
@@ -1415,8 +1480,20 @@ body.light-theme .theme-toggle{background:#fffffff0;color:#382820;border-color:#
         throw new Error(data.error || "Não foi possível enviar o pedido.");
       }
 
+      localStorage.setItem("pizza_do_kim_last_order",JSON.stringify({
+        id:data.id,
+        number:data.number,
+        createdAt:data.createdAt
+      }));
+      showOrderTracking(data);
+      startOrderTracking();
+
+      if(localStorage.getItem("pizza_do_kim_push_enabled")==="yes" && Notification.permission==="granted"){
+        enablePushForCurrentOrder().catch(()=>{});
+      }
+
       alert(`✅ Pedido #${data.number || ""} enviado para a Pizza do Kim!
-O pedido já apareceu no aplicativo do vendedor.`);
+Você pode acompanhar o andamento aqui no aplicativo.`);
       state.items=[];
       render();
       window.scrollTo({top:0,behavior:"smooth"});
@@ -1427,6 +1504,131 @@ O pedido já apareceu no aplicativo do vendedor.`);
       btn.textContent=original;
     }
   });
+
+
+  function urlBase64ToUint8Array(base64String){
+    const padding="=".repeat((4-base64String.length%4)%4);
+    const base64=(base64String+padding).replace(/-/g,"+").replace(/_/g,"/");
+    const raw=atob(base64);
+    return Uint8Array.from([...raw].map(ch=>ch.charCodeAt(0)));
+  }
+
+  async function enablePushForCurrentOrder(){
+    const btn=q("enableNotifications");
+    const note=q("notifyNote");
+    let saved;
+    try{saved=JSON.parse(localStorage.getItem("pizza_do_kim_last_order")||"null");}catch(e){}
+    if(!saved?.id){
+      alert("Faça um pedido primeiro para ativar o acompanhamento.");
+      return;
+    }
+    if(!("serviceWorker" in navigator) || !("PushManager" in window) || !("Notification" in window)){
+      alert("Este navegador não oferece suporte a notificações do aplicativo.");
+      return;
+    }
+
+    try{
+      const permission=await Notification.requestPermission();
+      if(permission!=="granted"){
+        note.textContent="As notificações estão bloqueadas. Você pode liberá-las nas configurações do navegador.";
+        return;
+      }
+
+      const reg=await navigator.serviceWorker.ready;
+      const keyRes=await fetch("/api/push/public-key",{cache:"no-store"});
+      const keyData=await keyRes.json();
+      if(!keyRes.ok || !keyData.publicKey) throw new Error("Push não configurado");
+
+      let subscription=await reg.pushManager.getSubscription();
+      if(!subscription){
+        subscription=await reg.pushManager.subscribe({
+          userVisibleOnly:true,
+          applicationServerKey:urlBase64ToUint8Array(keyData.publicKey)
+        });
+      }
+
+      const saveRes=await fetch("/api/push/subscribe",{
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({orderId:saved.id,subscription})
+      });
+      if(!saveRes.ok) throw new Error("Falha ao registrar");
+
+      btn.textContent="✓ Notificações ativadas";
+      btn.classList.add("enabled");
+      note.textContent="Você receberá um aviso no telefone quando a pizza sair para entrega.";
+      localStorage.setItem("pizza_do_kim_push_enabled","yes");
+    }catch(err){
+      alert("Não foi possível ativar as notificações agora. Tente novamente.");
+    }
+  }
+
+  q("enableNotifications")?.addEventListener("click",enablePushForCurrentOrder);
+
+  let trackingTimer=null;
+
+  function trackingElements(){
+    return {
+      box:q("orderTracking"),
+      icon:q("trackingIcon"),
+      title:q("trackingTitle"),
+      text:q("trackingText"),
+      number:q("trackingNumber"),
+      received:q("trackReceived"),
+      delivery:q("trackDelivery")
+    };
+  }
+
+  function showOrderTracking(order){
+    if(!order || !order.id) return;
+    const el=trackingElements();
+    el.box.classList.remove("hidden");
+    el.number.textContent=`Pedido #${order.number || ""}`;
+    el.received.classList.add("active");
+
+    if(order.status==="done"){
+      el.box.classList.add("delivering");
+      el.icon.textContent="🛵";
+      el.title.textContent="Sua pizza está saindo para entrega!";
+      el.text.textContent="O pedido foi finalizado na pizzaria e já está saindo para o endereço informado.";
+      el.delivery.classList.add("active");
+    }else{
+      el.box.classList.remove("delivering");
+      el.icon.textContent="🍕";
+      el.title.textContent="Pedido recebido";
+      el.text.textContent="A Pizza do Kim recebeu seu pedido e está preparando tudo.";
+      el.delivery.classList.remove("active");
+    }
+  }
+
+  async function refreshOrderTracking(){
+    let saved;
+    try{ saved=JSON.parse(localStorage.getItem("pizza_do_kim_last_order")||"null"); }catch(e){}
+    if(!saved?.id) return;
+
+    try{
+      const response=await fetch(`/api/orders/${encodeURIComponent(saved.id)}`,{cache:"no-store"});
+      if(response.status===404){
+        localStorage.removeItem("pizza_do_kim_last_order");
+        q("orderTracking")?.classList.add("hidden");
+        return;
+      }
+      if(!response.ok) return;
+      const data=await response.json();
+      showOrderTracking(data);
+    }catch(e){}
+  }
+
+  function startOrderTracking(){
+    if(trackingTimer) clearInterval(trackingTimer);
+    refreshOrderTracking();
+    trackingTimer=setInterval(refreshOrderTracking,5000);
+  }
+
+  // Continua acompanhando mesmo se o cliente fechar e abrir o app novamente.
+  if(localStorage.getItem("pizza_do_kim_last_order")){
+    startOrderTracking();
+  }
 
   q("clearBtn").addEventListener("click",()=>{
     if(confirm("Deseja limpar todo o pedido?")){

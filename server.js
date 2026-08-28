@@ -3,14 +3,23 @@ const fs = require("fs");
 const path = require("path");
 const crypto = require("crypto");
 const querystring = require("querystring");
+const webpush = require("web-push");
 
 const PORT = process.env.PORT || 3000;
 const ROOT = __dirname;
 const DB = path.join(ROOT, "orders.json");
+const PUSH_DB = path.join(ROOT, "push_subscriptions.json");
 
 // Defina SELLER_PASSWORD no Render. Não coloque a senha no GitHub.
 const SELLER_PASSWORD = process.env.SELLER_PASSWORD || "troque-esta-senha";
 const SESSION_SECRET = process.env.SESSION_SECRET || "pizza-do-kim-session-secret";
+const VAPID_PUBLIC_KEY = process.env.VAPID_PUBLIC_KEY || "";
+const VAPID_PRIVATE_KEY = process.env.VAPID_PRIVATE_KEY || "";
+const VAPID_SUBJECT = process.env.VAPID_SUBJECT || "mailto:contato@pizzadokim.local";
+
+if(VAPID_PUBLIC_KEY && VAPID_PRIVATE_KEY){
+  webpush.setVapidDetails(VAPID_SUBJECT, VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY);
+}
 
 function readOrders() {
   try { return JSON.parse(fs.readFileSync(DB, "utf8")); }
@@ -18,6 +27,53 @@ function readOrders() {
 }
 function saveOrders(orders) {
   fs.writeFileSync(DB, JSON.stringify(orders, null, 2), "utf8");
+}
+function readPushSubscriptions() {
+  try { return JSON.parse(fs.readFileSync(PUSH_DB, "utf8")); }
+  catch { return []; }
+}
+function savePushSubscriptions(list) {
+  fs.writeFileSync(PUSH_DB, JSON.stringify(list, null, 2), "utf8");
+}
+function sanitizeSubscription(body){
+  const orderId=String(body.orderId||"").slice(0,100);
+  const sub=body.subscription||{};
+  const endpoint=String(sub.endpoint||"").slice(0,2000);
+  const p256dh=String(sub.keys?.p256dh||"").slice(0,500);
+  const auth=String(sub.keys?.auth||"").slice(0,500);
+  if(!orderId || !endpoint || !p256dh || !auth) return null;
+  return {orderId,subscription:{endpoint,keys:{p256dh,auth}}};
+}
+async function notifyOrderDelivery(order){
+  if(!VAPID_PUBLIC_KEY || !VAPID_PRIVATE_KEY) return;
+  const all=readPushSubscriptions();
+  const targets=all.filter(x=>x.orderId===order.id);
+  if(!targets.length) return;
+
+  const payload=JSON.stringify({
+    title:"Pizza do Kim 🍕",
+    body:`Pedido #${order.number}: sua pizza saiu para entrega! 🛵`,
+    icon:"/icon-192.png",
+    badge:"/icon-192.png",
+    url:"/cliente",
+    orderId:order.id
+  });
+
+  const dead=new Set();
+  await Promise.all(targets.map(async item=>{
+    try{
+      await webpush.sendNotification(item.subscription,payload);
+    }catch(err){
+      if(err && (err.statusCode===404 || err.statusCode===410)){
+        dead.add(item.subscription.endpoint);
+      }else{
+        console.error("Erro push:",err?.message||err);
+      }
+    }
+  }));
+  if(dead.size){
+    savePushSubscriptions(all.filter(x=>!dead.has(x.subscription?.endpoint)));
+  }
 }
 function send(res, code, data, type="application/json; charset=utf-8", extraHeaders={}) {
   res.writeHead(code, {
@@ -162,6 +218,31 @@ const server=http.createServer(async(req,res)=>{
     });
   }
 
+  // Chave pública usada pelo navegador para assinar notificações push.
+  if(pathname==="/api/push/public-key" && req.method==="GET"){
+    if(!VAPID_PUBLIC_KEY) return send(res,503,{error:"Push ainda não configurado"});
+    return send(res,200,{publicKey:VAPID_PUBLIC_KEY});
+  }
+
+  // Cliente registra a assinatura push vinculada ao pedido.
+  if(pathname==="/api/push/subscribe" && req.method==="POST"){
+    try{
+      const data=sanitizeSubscription(await bodyJson(req));
+      if(!data) return send(res,400,{error:"Assinatura inválida"});
+      const order=readOrders().find(o=>o.id===data.orderId);
+      if(!order) return send(res,404,{error:"Pedido não encontrado"});
+
+      const list=readPushSubscriptions();
+      const endpoint=data.subscription.endpoint;
+      const filtered=list.filter(x=>x.subscription?.endpoint!==endpoint);
+      filtered.push({...data,createdAt:new Date().toISOString()});
+      savePushSubscriptions(filtered.slice(-5000));
+      return send(res,201,{ok:true});
+    }catch(e){
+      return send(res,400,{error:"Não foi possível ativar notificações"});
+    }
+  }
+
   // Cliente pode ENVIAR pedidos sem login.
   if(pathname==="/api/orders" && req.method==="POST"){
     try{
@@ -194,6 +275,19 @@ const server=http.createServer(async(req,res)=>{
 
   const match=pathname.match(/^\/api\/orders\/([^/]+)$/);
 
+  // Cliente pode consultar SOMENTE o andamento do próprio pedido pelo ID aleatório.
+  // Não retorna nome, telefone, endereço ou itens.
+  if(match && req.method==="GET"){
+    const o=readOrders().find(x=>x.id===match[1]);
+    if(!o) return send(res,404,{error:"Pedido não encontrado"});
+    return send(res,200,{
+      id:o.id,
+      number:o.number,
+      status:o.status,
+      createdAt:o.createdAt
+    });
+  }
+
   if(match && req.method==="PATCH"){
     if(!requireSeller(req,res,true)) return;
     try{
@@ -201,8 +295,12 @@ const server=http.createServer(async(req,res)=>{
       const orders=readOrders();
       const o=orders.find(x=>x.id===match[1]);
       if(!o) return send(res,404,{error:"Não encontrado"});
+      const previousStatus=o.status;
       if(body.status==="new" || body.status==="done") o.status=body.status;
       saveOrders(orders);
+      if(previousStatus!=="done" && o.status==="done"){
+        notifyOrderDelivery(o).catch(err=>console.error("Push entrega:",err));
+      }
       return send(res,200,o);
     }catch{
       return send(res,400,{error:"Inválido"});

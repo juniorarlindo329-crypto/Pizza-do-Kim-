@@ -25,3 +25,35 @@ self.addEventListener("fetch",event=>{
     ))
   );
 });
+
+
+self.addEventListener("push",event=>{
+  let data={};
+  try{ data=event.data ? event.data.json() : {}; }catch(e){}
+  const title=data.title || "Pizza do Kim 🍕";
+  const options={
+    body:data.body || "Seu pedido foi atualizado.",
+    icon:data.icon || "/icon-192.png",
+    badge:data.badge || "/icon-192.png",
+    tag:data.orderId ? `pedido-${data.orderId}` : "pizza-do-kim",
+    renotify:true,
+    data:{url:data.url || "/cliente"}
+  };
+  event.waitUntil(self.registration.showNotification(title,options));
+});
+
+self.addEventListener("notificationclick",event=>{
+  event.notification.close();
+  const url=event.notification.data?.url || "/cliente";
+  event.waitUntil(
+    clients.matchAll({type:"window",includeUncontrolled:true}).then(list=>{
+      for(const client of list){
+        if("focus" in client){
+          client.navigate(url);
+          return client.focus();
+        }
+      }
+      return clients.openWindow ? clients.openWindow(url) : null;
+    })
+  );
+});

@@ -1,0 +1,34 @@
+PIZZA DO KIM - ATIVAR NOTIFICACOES PUSH
+
+1. Envie todos os arquivos deste ZIP para o GitHub e aguarde o Render instalar a dependência web-push.
+
+2. Você precisa criar duas chaves VAPID e colocá-las no Render:
+   VAPID_PUBLIC_KEY
+   VAPID_PRIVATE_KEY
+
+3. No computador, depois de instalar Node.js, rode:
+   npx web-push generate-vapid-keys
+
+   Copie Public Key e Private Key.
+
+4. No Render:
+   Pizza-do-Kim > Environment > Add variable
+
+   VAPID_PUBLIC_KEY = cole a Public Key
+   VAPID_PRIVATE_KEY = cole a Private Key
+   VAPID_SUBJECT = mailto:seu-email@exemplo.com
+
+5. Clique em Save, rebuild, and deploy.
+
+6. No celular do cliente, após fazer o pedido, toque uma única vez em:
+   "Ativar notificações"
+   e permita notificações.
+
+Depois disso, quando o vendedor tocar em "Finalizar e sair p/ entrega",
+o telefone do cliente recebe:
+"Pizza do Kim - Sua pizza saiu para entrega!"
+mesmo com o aplicativo fechado.
+
+IMPORTANTE:
+- O navegador exige autorização do cliente; nenhum site pode ativar notificações silenciosamente.
+- No Android/Chrome funciona com o app/site fechado depois que a permissão foi concedida.

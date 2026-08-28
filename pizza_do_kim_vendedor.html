@@ -99,7 +99,7 @@ body{background:#fff;color:#000;padding:0}.no-print,header,.hero-strip,.bottom-n
       <img src="/icon-192.png" class="app-logo" alt="Pizza do Kim">
       <div>
         <h1>Pizza do Kim</h1>
-        <div class="sub">Painel do vendedor • pedidos em tempo real</div>
+        <div class="sub">Painel do vendedor • ao finalizar, o cliente recebe “saindo para entrega”</div>
       </div>
     </div>
     <div class="status" id="connectionStatus">Conectando...</div>
@@ -243,7 +243,7 @@ body{background:#fff;color:#000;padding:0}.no-print,header,.hero-strip,.bottom-n
 
         <div class="actions no-print">
           <button class="btn-action print" data-action="print">🖨️ Imprimir</button>
-          <button class="btn-action done" data-action="toggle">${o.status==="new"?"✓ Finalizar":"↩ Reabrir"}</button>
+          <button class="btn-action done" data-action="toggle">${o.status==="new"?"🛵 Finalizar e sair p/ entrega":"↩ Reabrir"}</button>
           <button class="btn-action remove" data-action="remove">🗑️ Excluir pedido</button>
         </div>
       </article>
