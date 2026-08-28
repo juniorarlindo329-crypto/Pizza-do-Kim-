@@ -1558,8 +1558,12 @@ Você pode acompanhar o andamento aqui no aplicativo.`);
   function hideNotificationReminder(){ q("notifyReminder")?.classList.add("hidden"); }
   q("notifyReminderLater")?.addEventListener("click",hideNotificationReminder);
   q("notifyReminderOn")?.addEventListener("click",async()=>{
-    await enablePushForCurrentOrder();
-    if(localStorage.getItem("pizza_do_kim_push_enabled")==="yes") hideNotificationReminder();
+    const reminderBtn=q("notifyReminderOn");
+    const originalText=reminderBtn?.textContent || "🔔 Ativar notificações";
+    if(reminderBtn){ reminderBtn.disabled=true; reminderBtn.textContent="Ativando..."; }
+    const ok=await enablePushForCurrentOrder(reminderBtn);
+    if(ok) hideNotificationReminder();
+    else if(reminderBtn){ reminderBtn.disabled=false; reminderBtn.textContent=originalText; }
   });
 
   function urlBase64ToUint8Array(base64String){
@@ -1569,35 +1573,38 @@ Você pode acompanhar o andamento aqui no aplicativo.`);
     return Uint8Array.from([...raw].map(ch=>ch.charCodeAt(0)));
   }
 
-  async function enablePushForCurrentOrder(){
+  async function enablePushForCurrentOrder(sourceBtn){
     const btn=q("enableNotifications");
     const note=q("notifyNote");
     let saved;
     try{saved=JSON.parse(localStorage.getItem("pizza_do_kim_last_order")||"null");}catch(e){}
-    if(!saved?.id){
-      alert("Faça um pedido primeiro para ativar o acompanhamento.");
-      return;
-    }
+    if(!saved?.id){ alert("Faça um pedido primeiro para ativar o acompanhamento."); return false; }
     if(!("serviceWorker" in navigator) || !("PushManager" in window) || !("Notification" in window)){
-      alert("Este navegador não oferece suporte a notificações do aplicativo.");
-      return;
+      alert("Este navegador não oferece suporte a notificações do aplicativo."); return false;
     }
-
     try{
-      const permission=await Notification.requestPermission();
+      let permission=Notification.permission;
+      if(permission==="default") permission=await Notification.requestPermission();
       if(permission!=="granted"){
-        note.textContent="As notificações estão bloqueadas. Você pode liberá-las nas configurações do navegador.";
-        return;
+        if(note) note.textContent="As notificações estão bloqueadas. Libere-as nas configurações do navegador.";
+        alert("As notificações não foram permitidas. Libere a permissão de Notificações para o Pizza do Kim.");
+        return false;
       }
 
-      const reg=await navigator.serviceWorker.ready;
+      let reg=await navigator.serviceWorker.getRegistration("/");
+      if(!reg) reg=await navigator.serviceWorker.register("/service-worker.js",{scope:"/"});
+      const ready=await Promise.race([
+        navigator.serviceWorker.ready,
+        new Promise((_,reject)=>setTimeout(()=>reject(new Error("Service Worker demorou para iniciar")),12000))
+      ]);
+
       const keyRes=await fetch("/api/push/public-key",{cache:"no-store"});
       const keyData=await keyRes.json();
       if(!keyRes.ok || !keyData.publicKey) throw new Error("Push não configurado");
 
-      let subscription=await reg.pushManager.getSubscription();
+      let subscription=await ready.pushManager.getSubscription();
       if(!subscription){
-        subscription=await reg.pushManager.subscribe({
+        subscription=await ready.pushManager.subscribe({
           userVisibleOnly:true,
           applicationServerKey:urlBase64ToUint8Array(keyData.publicKey)
         });
@@ -1610,12 +1617,15 @@ Você pode acompanhar o andamento aqui no aplicativo.`);
       });
       if(!saveRes.ok) throw new Error("Falha ao registrar");
 
-      btn.textContent="✓ Notificações ativadas";
-      btn.classList.add("enabled");
-      note.textContent="Você receberá um aviso no telefone quando a pizza sair para entrega.";
+      if(btn){ btn.textContent="✓ Notificações ativadas"; btn.classList.add("enabled"); }
+      if(sourceBtn) sourceBtn.textContent="✓ Ativadas";
+      if(note) note.textContent="Você receberá um aviso no telefone quando a pizza sair para entrega.";
       localStorage.setItem("pizza_do_kim_push_enabled","yes");
+      return true;
     }catch(err){
-      alert("Não foi possível ativar as notificações agora. Tente novamente.");
+      console.error("Erro ao ativar push:",err);
+      alert("Não foi possível ativar as notificações. Atualize o aplicativo e tente novamente.");
+      return false;
     }
   }
 
