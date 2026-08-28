@@ -1567,10 +1567,34 @@ Você pode acompanhar o andamento aqui no aplicativo.`);
   });
 
   function urlBase64ToUint8Array(base64String){
-    const padding="=".repeat((4-base64String.length%4)%4);
-    const base64=(base64String+padding).replace(/-/g,"+").replace(/_/g,"/");
+    const clean=String(base64String||"").trim().replace(/\s+/g,"");
+    const padding="=".repeat((4-clean.length%4)%4);
+    const base64=(clean+padding).replace(/-/g,"+").replace(/_/g,"/");
     const raw=atob(base64);
     return Uint8Array.from([...raw].map(ch=>ch.charCodeAt(0)));
+  }
+
+  function sameApplicationServerKey(subscription,keyBytes){
+    try{
+      const current=subscription?.options?.applicationServerKey;
+      if(!current) return true;
+      const a=new Uint8Array(current);
+      if(a.length!==keyBytes.length) return false;
+      for(let i=0;i<a.length;i++) if(a[i]!==keyBytes[i]) return false;
+      return true;
+    }catch(e){ return true; }
+  }
+
+  function pushErrorMessage(err,stage){
+    const name=String(err?.name||"");
+    const msg=String(err?.message||"");
+    if(name==="NotAllowedError") return "As notificações não foram permitidas neste aparelho.";
+    if(name==="InvalidStateError") return "O sistema de notificações do navegador ainda não ficou pronto. Tente novamente.";
+    if(name==="AbortError") return "O serviço de notificações do celular não respondeu. Tente novamente.";
+    if(name==="NetworkError") return "Falha de conexão ao ativar as notificações.";
+    if(stage==="key") return "A chave de notificações do servidor não foi carregada.";
+    if(stage==="save") return "A notificação foi criada no celular, mas não foi registrada no pedido.";
+    return "Não foi possível concluir a ativação das notificações.";
   }
 
   async function enablePushForCurrentOrder(sourceBtn){
@@ -1578,58 +1602,117 @@ Você pode acompanhar o andamento aqui no aplicativo.`);
     const note=q("notifyNote");
     let saved;
     try{saved=JSON.parse(localStorage.getItem("pizza_do_kim_last_order")||"null");}catch(e){}
-    if(!saved?.id){ alert("Faça um pedido primeiro para ativar o acompanhamento."); return false; }
-    if(!("serviceWorker" in navigator) || !("PushManager" in window) || !("Notification" in window)){
-      alert("Este navegador não oferece suporte a notificações do aplicativo."); return false;
+    if(!saved?.id){
+      alert("Faça um pedido primeiro para ativar o acompanhamento.");
+      return false;
     }
+    if(!window.isSecureContext){
+      alert("As notificações precisam de uma conexão segura.");
+      return false;
+    }
+    if(!("serviceWorker" in navigator) || !("PushManager" in window) || !("Notification" in window)){
+      alert("Este navegador não oferece suporte às notificações do aplicativo.");
+      return false;
+    }
+
+    let stage="permission";
     try{
+      // A permissão é pedida diretamente pelo toque do cliente.
       let permission=Notification.permission;
-      if(permission==="default") permission=await Notification.requestPermission();
+      if(permission==="default"){
+        permission=await Notification.requestPermission();
+      }
       if(permission!=="granted"){
-        if(note) note.textContent="As notificações estão bloqueadas. Libere-as nas configurações do navegador.";
-        alert("As notificações não foram permitidas. Libere a permissão de Notificações para o Pizza do Kim.");
+        if(note) note.textContent="As notificações não foram permitidas.";
+        alert("Para receber o aviso da entrega, toque em Permitir quando o celular perguntar sobre notificações.");
         return false;
       }
 
-      let reg=await navigator.serviceWorker.getRegistration("/");
-      if(!reg) reg=await navigator.serviceWorker.register("/service-worker.js",{scope:"/"});
-      const ready=await Promise.race([
-        navigator.serviceWorker.ready,
-        new Promise((_,reject)=>setTimeout(()=>reject(new Error("Service Worker demorou para iniciar")),12000))
-      ]);
+      stage="serviceworker";
+      let reg=await navigator.serviceWorker.getRegistration();
+      if(!reg){
+        reg=await navigator.serviceWorker.register("/service-worker.js",{scope:"/"});
+      }
+      await navigator.serviceWorker.ready;
 
+      stage="key";
       const keyRes=await fetch("/api/push/public-key",{cache:"no-store"});
-      const keyData=await keyRes.json();
-      if(!keyRes.ok || !keyData.publicKey) throw new Error("Push não configurado");
+      const keyData=await keyRes.json().catch(()=>({}));
+      if(!keyRes.ok || !keyData.publicKey) throw new Error(keyData.error||"Chave Push ausente");
 
-      let subscription=await ready.pushManager.getSubscription();
-      if(!subscription){
-        subscription=await ready.pushManager.subscribe({
-          userVisibleOnly:true,
-          applicationServerKey:urlBase64ToUint8Array(keyData.publicKey)
-        });
+      const keyBytes=urlBase64ToUint8Array(keyData.publicKey);
+      if(keyBytes.length!==65) throw new Error("Chave pública Push inválida");
+
+      stage="subscribe";
+      let subscription=await reg.pushManager.getSubscription();
+
+      // Se já existir uma inscrição antiga criada com outra chave, recria.
+      if(subscription && !sameApplicationServerKey(subscription,keyBytes)){
+        try{ await subscription.unsubscribe(); }catch(e){}
+        subscription=null;
       }
 
+      if(!subscription){
+        try{
+          subscription=await reg.pushManager.subscribe({
+            userVisibleOnly:true,
+            applicationServerKey:keyBytes
+          });
+        }catch(firstErr){
+          // Alguns Androids/Chromes precisam de uma segunda tentativa após
+          // o Service Worker ficar definitivamente ativo.
+          if(firstErr?.name==="AbortError" || firstErr?.name==="InvalidStateError"){
+            await new Promise(r=>setTimeout(r,1200));
+            const readyReg=await navigator.serviceWorker.ready;
+            subscription=await readyReg.pushManager.subscribe({
+              userVisibleOnly:true,
+              applicationServerKey:keyBytes
+            });
+            reg=readyReg;
+          }else{
+            throw firstErr;
+          }
+        }
+      }
+
+      stage="save";
       const saveRes=await fetch("/api/push/subscribe",{
         method:"POST",
         headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({orderId:saved.id,subscription})
+        body:JSON.stringify({orderId:saved.id,subscription:subscription.toJSON ? subscription.toJSON() : subscription})
       });
-      if(!saveRes.ok) throw new Error("Falha ao registrar");
+      const saveData=await saveRes.json().catch(()=>({}));
+      if(!saveRes.ok) throw new Error(saveData.error||"Falha ao registrar");
 
-      if(btn){ btn.textContent="✓ Notificações ativadas"; btn.classList.add("enabled"); }
-      if(sourceBtn) sourceBtn.textContent="✓ Ativadas";
-      if(note) note.textContent="Você receberá um aviso no telefone quando a pizza sair para entrega.";
       localStorage.setItem("pizza_do_kim_push_enabled","yes");
+      if(btn){
+        btn.textContent="✓ Notificações ativadas";
+        btn.classList.add("enabled");
+      }
+      if(sourceBtn && sourceBtn.nodeType===1) sourceBtn.textContent="✓ Ativadas";
+      if(note) note.textContent="Pronto! Você receberá o aviso quando sua pizza sair para entrega.";
+
+      // Faz um teste real, silenciosamente no fluxo, para confirmar que
+      // servidor + celular estão conversando corretamente.
+      try{
+        await fetch("/api/push/test",{
+          method:"POST",
+          headers:{"Content-Type":"application/json"},
+          body:JSON.stringify({orderId:saved.id})
+        });
+      }catch(e){}
+
       return true;
     }catch(err){
-      console.error("Erro ao ativar push:",err);
-      alert("Não foi possível ativar as notificações. Atualize o aplicativo e tente novamente.");
+      console.error("Erro push etapa",stage,err);
+      const friendly=pushErrorMessage(err,stage);
+      if(note) note.textContent=friendly;
+      alert(friendly+" Tente novamente em alguns segundos.");
       return false;
     }
   }
 
-  q("enableNotifications")?.addEventListener("click",enablePushForCurrentOrder);
+  q("enableNotifications")?.addEventListener("click",()=>enablePushForCurrentOrder(q("enableNotifications")));
 
   let trackingTimer=null;
 

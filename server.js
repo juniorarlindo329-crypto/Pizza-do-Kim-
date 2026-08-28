@@ -13,9 +13,10 @@ const PUSH_DB = path.join(ROOT, "push_subscriptions.json");
 // Defina SELLER_PASSWORD no Render. Não coloque a senha no GitHub.
 const SELLER_PASSWORD = process.env.SELLER_PASSWORD || "troque-esta-senha";
 const SESSION_SECRET = process.env.SESSION_SECRET || "pizza-do-kim-session-secret";
-const VAPID_PUBLIC_KEY = process.env.VAPID_PUBLIC_KEY || "";
-const VAPID_PRIVATE_KEY = process.env.VAPID_PRIVATE_KEY || "";
-const VAPID_SUBJECT = process.env.VAPID_SUBJECT || "mailto:contato@pizzadokim.local";
+const cleanEnv = v => String(v || "").trim().replace(/^["']|["']$/g,"");
+const VAPID_PUBLIC_KEY = cleanEnv(process.env.VAPID_PUBLIC_KEY);
+const VAPID_PRIVATE_KEY = cleanEnv(process.env.VAPID_PRIVATE_KEY);
+const VAPID_SUBJECT = cleanEnv(process.env.VAPID_SUBJECT) || "mailto:contato@pizzadokim.local";
 
 if(VAPID_PUBLIC_KEY && VAPID_PRIVATE_KEY){
   webpush.setVapidDetails(VAPID_SUBJECT, VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY);
@@ -240,6 +241,43 @@ const server=http.createServer(async(req,res)=>{
       return send(res,201,{ok:true});
     }catch(e){
       return send(res,400,{error:"Não foi possível ativar notificações"});
+    }
+  }
+
+  // Teste real de push após o cliente ativar as notificações.
+  if(pathname==="/api/push/test" && req.method==="POST"){
+    try{
+      const body=await bodyJson(req);
+      const orderId=String(body.orderId||"");
+      const order=readOrders().find(o=>o.id===orderId);
+      if(!order) return send(res,404,{error:"Pedido não encontrado"});
+
+      const matches=readPushSubscriptions().filter(x=>x.orderId===orderId);
+      if(!matches.length) return send(res,404,{error:"Notificação ainda não registrada"});
+
+      const payload=JSON.stringify({
+        title:"Pizza do Kim 🍕",
+        body:"Notificações ativadas com sucesso! 🔔",
+        icon:"/icon-192.png",
+        badge:"/icon-192.png",
+        orderId,
+        url:"/cliente"
+      });
+
+      let sent=0;
+      for(const item of matches){
+        try{
+          await webpush.sendNotification(item.subscription,payload);
+          sent++;
+        }catch(err){
+          console.error("Push teste:",err.statusCode||"",err.message||err);
+        }
+      }
+      if(!sent) return send(res,502,{error:"O celular não recebeu o teste"});
+      return send(res,200,{ok:true,sent});
+    }catch(e){
+      console.error("Push teste endpoint:",e);
+      return send(res,400,{error:"Não foi possível testar a notificação"});
     }
   }
 
