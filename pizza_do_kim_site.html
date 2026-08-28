@@ -825,6 +825,33 @@ select.kim-native-hidden{position:absolute!important;opacity:0!important;pointer
 .kim-option:last-child{border-bottom:0}.kim-option span:first-child{flex:1}.kim-radio{width:25px;height:25px;border:3px solid #ead8cf;border-radius:50%;flex:0 0 25px;box-sizing:border-box}.kim-option.selected .kim-radio{border-color:#ff9a69;box-shadow:0 0 8px rgba(255,105,35,.5);position:relative}.kim-option.selected .kim-radio:after{content:'';position:absolute;inset:4px;border-radius:50%;background:#ff7b32}.kim-option.selected{color:#fff}.kim-select-backdrop{display:none;position:fixed;inset:0;background:rgba(0,0,0,.62);z-index:99998}.kim-select-backdrop.open{display:block}
 body.light-theme .kim-select-btn{background:#fff;color:#2c211d}.kim-select-panel{color-scheme:dark}
 
+
+
+/* ===== PIX + EFEITO DE TAMANHO ===== */
+.pix-payment-box{display:none;margin-top:14px;padding:16px;border-radius:16px;border:1px solid rgba(255,117,40,.72);background:linear-gradient(145deg,rgba(31,18,11,.98),rgba(12,10,9,.99));box-shadow:0 0 10px rgba(255,102,24,.22),inset 0 0 14px rgba(255,116,34,.05)}
+.pix-payment-box.show{display:block;animation:pixOpen .24s ease-out}
+@keyframes pixOpen{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
+.pix-payment-box h3{margin:0 0 7px;color:#ff7626;font-size:19px}
+.pix-payment-box p{margin:5px 0 10px;color:#bbb;line-height:1.45}
+.pix-key-row{display:flex;align-items:center;gap:8px;padding:10px 11px;background:#0a0908;border:1px solid #4c2a1b;border-radius:12px}
+.pix-key-row code{flex:1;overflow-wrap:anywhere;color:#fff;font-size:15px}
+.pix-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+.pix-action{border:1px solid #ff6f24;background:#1a0e08;color:#fff;border-radius:11px;min-height:44px;font-weight:800;cursor:pointer}
+.pix-action.primary{background:linear-gradient(135deg,#ef5b10,#c82d10);border:0}
+.pix-qr-wrap{text-align:center;margin-top:13px}
+.pix-qr-wrap img{width:210px;max-width:78%;aspect-ratio:1/1;background:#fff;padding:9px;border-radius:14px;box-shadow:0 0 16px rgba(255,117,40,.30)}
+.pix-total-note{font-size:13px!important;color:#e7c5b4!important}
+.pix-copy-status{min-height:18px;font-size:12px;color:#8fdf98;margin-top:7px}
+.sizes .choice{overflow:visible}
+.sizes .choice.active{transform:translateY(-3px) scale(1.035);border-color:#ff782b!important;box-shadow:0 0 0 2px rgba(255,120,43,.18),0 0 18px rgba(255,90,14,.48)!important}
+.sizes .choice.active::after{content:"✓ Selecionado";position:absolute;top:6px;right:7px;background:#ff6f23;color:#fff;border-radius:999px;padding:3px 6px;font-size:8px;font-weight:900;box-shadow:0 0 8px rgba(255,111,35,.55)}
+.sizes .choice.size-click-effect{animation:sizeChoicePop .34s ease}
+@keyframes sizeChoicePop{0%{transform:scale(1)}45%{transform:scale(1.09)}100%{transform:translateY(-3px) scale(1.035)}}
+body.light-theme .pix-payment-box{background:#fff8f3}
+body.light-theme .pix-key-row{background:#fff;color:#2b211c}
+body.light-theme .pix-key-row code{color:#2b211c}
+@media(max-width:520px){.pix-actions{grid-template-columns:1fr}}
+
 </style>
 </head>
 <body>
@@ -1052,6 +1079,18 @@ body.light-theme .kim-select-btn{background:#fff;color:#2c211d}.kim-select-panel
             </select>
           </div>
         </div>
+        <div id="pixPaymentBox" class="pix-payment-box" aria-live="polite">
+          <h3>💠 Pagamento via Pix</h3>
+          <p>Use a chave abaixo ou escaneie o QR Code. O QR acompanha o total atual do pedido.</p>
+          <div class="pix-key-row"><span>Chave:</span><code id="pixKeyText">(33) 99847-1303</code></div>
+          <div class="pix-actions">
+            <button type="button" class="pix-action primary" id="copyPixKey">📋 Copiar chave Pix</button>
+            <button type="button" class="pix-action" id="copyPixCode">📲 Copiar Pix copia e cola</button>
+          </div>
+          <div class="pix-qr-wrap"><img id="pixQrImage" alt="QR Code Pix Pizza do Kim"></div>
+          <p class="pix-total-note" id="pixTotalNote"></p>
+          <div class="pix-copy-status" id="pixCopyStatus"></div>
+        </div>
         <label for="change">Troco para</label>
         <input id="change" placeholder="Ex.: R$ 100,00">
       </section>
@@ -1237,8 +1276,13 @@ body.light-theme .kim-select-btn{background:#fff;color:#2c211d}.kim-select-panel
 
   document.querySelectorAll("#sizes .choice").forEach(btn=>{
     btn.addEventListener("click",()=>{
-      document.querySelectorAll("#sizes .choice").forEach(b=>b.classList.remove("active"));
-      btn.classList.add("active"); state.size=btn.dataset.size; fillFlavors(); updatePrice();
+      document.querySelectorAll("#sizes .choice").forEach(b=>b.classList.remove("active","size-click-effect"));
+      void btn.offsetWidth;
+      btn.classList.add("active","size-click-effect");
+      state.size=btn.dataset.size;
+      fillFlavors();
+      updatePrice();
+      setTimeout(()=>btn.classList.remove("size-click-effect"),420);
     });
   });
 
@@ -1317,6 +1361,57 @@ body.light-theme .kim-select-btn{background:#fff;color:#2c211d}.kim-select-panel
     render();
   }
 
+  const PIX_KEY="(33) 99847-1303";
+
+  async function copyText(value,message){
+    try{
+      await navigator.clipboard.writeText(value);
+    }catch(e){
+      const ta=document.createElement("textarea");
+      ta.value=value; document.body.appendChild(ta); ta.select();
+      document.execCommand("copy"); ta.remove();
+    }
+    if(q("pixCopyStatus")){
+      q("pixCopyStatus").textContent=message;
+      setTimeout(()=>q("pixCopyStatus").textContent="",2200);
+    }
+  }
+
+  async function refreshPixBox(){
+    const box=q("pixPaymentBox");
+    if(!box) return;
+    const payment=q("payment").value;
+    const isPix=payment==="Pix";
+    box.classList.toggle("show",isPix);
+    q("change").disabled=payment!=="Dinheiro";
+    if(!isPix) return;
+
+    const subtotal=state.items.reduce((s,i)=>s+i.qty*i.unit,0);
+    const total=subtotal+getDeliveryFee();
+    q("pixTotalNote").textContent=total>0
+      ? `QR Code preparado para o total atual: ${brl(total)}`
+      : "Adicione os itens ao pedido para o QR Code usar o valor final.";
+
+    try{
+      const res=await fetch(`/api/pix?amount=${encodeURIComponent(total.toFixed(2))}`,{cache:"no-store"});
+      const data=await res.json();
+      if(!res.ok) throw new Error(data.error||"Pix indisponível");
+      q("pixQrImage").src=data.qrDataUrl;
+      q("pixQrImage").dataset.payload=data.payload;
+    }catch(e){
+      console.error("Erro Pix:",e);
+      q("pixQrImage").removeAttribute("src");
+      q("pixQrImage").dataset.payload="";
+      q("pixTotalNote").textContent="A chave Pix continua disponível para copiar.";
+    }
+  }
+
+  q("copyPixKey")?.addEventListener("click",()=>copyText(PIX_KEY,"✓ Chave Pix copiada"));
+  q("copyPixCode")?.addEventListener("click",()=>{
+    const payload=q("pixQrImage")?.dataset.payload||PIX_KEY;
+    copyText(payload,"✓ Pix copia e cola copiado");
+  });
+
   function customerText(){
     const parts=[];
     if(q("name").value.trim()) parts.push(`<strong>Cliente:</strong> ${escapeHtml(q("name").value.trim())}`);
@@ -1384,10 +1479,11 @@ body.light-theme .kim-select-btn{background:#fff;color:#2c211d}.kim-select-panel
     q("deliveryRow").classList.toggle("hidden", delivery===0);
     q("total").textContent=brl(subtotal+delivery);
     q("customerSummary").innerHTML=customerText();
+    refreshPixBox();
   }
 
   ["name","phone","address","reference","change"].forEach(id=>q(id).addEventListener("input",render));
-  q("payment").addEventListener("change",render);
+  q("payment").addEventListener("change",()=>{render();refreshPixBox();});
 
   q("printBtn").addEventListener("click",()=>{
     if(!validateDelivery()) return;

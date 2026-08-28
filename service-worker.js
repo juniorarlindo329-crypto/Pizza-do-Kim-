@@ -1,4 +1,4 @@
-const CACHE_VERSION="pizza-do-kim-pwa-v8-design-cardapios";
+const CACHE_VERSION="pizza-do-kim-pwa-v7";
 
 self.addEventListener("install",event=>{
   self.skipWaiting();

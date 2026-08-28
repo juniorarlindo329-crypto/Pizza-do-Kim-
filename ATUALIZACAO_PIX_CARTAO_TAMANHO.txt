@@ -1,0 +1,15 @@
+Pizza do Kim — atualização
+
+1. Pix:
+- mostra a chave (33) 99847-1303;
+- botão Copiar chave Pix;
+- botão Copiar Pix copia e cola;
+- QR Code com o total atual do pedido.
+
+2. Cartão:
+- no painel do vendedor aparece em destaque: LEVAR MAQUININHA DE CARTÃO.
+
+3. Tamanho da pizza:
+- ao tocar em P, M, G ou GG, o botão cresce levemente, ganha brilho e mostra “Selecionado”.
+
+O restante das funções foi mantido.

@@ -6,6 +6,7 @@
     "start": "node server.js"
   },
   "dependencies": {
-    "web-push": "^3.6.7"
+    "web-push": "^3.6.7",
+    "qrcode": "^1.5.4"
   }
 }

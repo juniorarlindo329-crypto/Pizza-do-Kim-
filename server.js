@@ -4,6 +4,7 @@ const path = require("path");
 const crypto = require("crypto");
 const querystring = require("querystring");
 const webpush = require("web-push");
+const QRCode = require("qrcode");
 
 const PORT = process.env.PORT || 3000;
 const ROOT = __dirname;
@@ -20,6 +21,40 @@ const VAPID_SUBJECT = cleanEnv(process.env.VAPID_SUBJECT) || "mailto:contato@piz
 
 if(VAPID_PUBLIC_KEY && VAPID_PRIVATE_KEY){
   webpush.setVapidDetails(VAPID_SUBJECT, VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY);
+}
+
+function pixField(id,value){
+  const v=String(value);
+  return id + String(v.length).padStart(2,"0") + v;
+}
+function crc16ccitt(str){
+  let crc=0xFFFF;
+  for(let c=0;c<str.length;c++){
+    crc ^= str.charCodeAt(c)<<8;
+    for(let i=0;i<8;i++) crc=(crc & 0x8000) ? ((crc<<1)^0x1021) : (crc<<1);
+    crc &= 0xFFFF;
+  }
+  return crc.toString(16).toUpperCase().padStart(4,"0");
+}
+function cleanPixText(s,max){
+  return String(s||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"")
+    .replace(/[^A-Za-z0-9 .-]/g," ").replace(/\s+/g," ").trim().slice(0,max);
+}
+function buildPixPayload(amount){
+  const key="+5533998471303";
+  const merchantAccount=pixField("00","BR.GOV.BCB.PIX")+pixField("01",key);
+  let payload="";
+  payload+=pixField("00","01");
+  payload+=pixField("26",merchantAccount);
+  payload+=pixField("52","0000");
+  payload+=pixField("53","986");
+  if(Number(amount)>0) payload+=pixField("54",Number(amount).toFixed(2));
+  payload+=pixField("58","BR");
+  payload+=pixField("59",cleanPixText("PIZZA DO KIM",25));
+  payload+=pixField("60",cleanPixText("SAO JOSE DO JACURI",15));
+  payload+=pixField("62",pixField("05","***"));
+  payload+="6304";
+  return payload+crc16ccitt(payload);
 }
 
 function readOrders() {
@@ -278,6 +313,19 @@ const server=http.createServer(async(req,res)=>{
     }catch(e){
       console.error("Push teste endpoint:",e);
       return send(res,400,{error:"Não foi possível testar a notificação"});
+    }
+  }
+
+  if(pathname==="/api/pix" && req.method==="GET"){
+    try{
+      const raw=Number(url.searchParams.get("amount")||0);
+      const amount=Number.isFinite(raw) && raw>=0 ? raw : 0;
+      const payload=buildPixPayload(amount);
+      const qrDataUrl=await QRCode.toDataURL(payload,{errorCorrectionLevel:"M",margin:1,width:420});
+      return send(res,200,{key:"(33) 99847-1303",payload,qrDataUrl});
+    }catch(e){
+      console.error("Erro Pix QR:",e);
+      return send(res,500,{error:"Não foi possível gerar o QR Code Pix"});
     }
   }
 
