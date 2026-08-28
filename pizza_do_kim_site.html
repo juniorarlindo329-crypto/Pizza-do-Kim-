@@ -812,6 +812,19 @@ body.light-theme .menu-glow{
   box-shadow:0 0 8px rgba(225,91,25,.22),0 10px 26px #47281914!important;
 }
 /* ===== FIM VISUAL PREMIUM ===== */
+
+/* === CARDAPIO CUSTOMIZADO: listas com fundo desenhado + neon === */
+select.kim-native-hidden{position:absolute!important;opacity:0!important;pointer-events:none!important;width:1px!important;height:1px!important;min-height:1px!important;padding:0!important;border:0!important}
+.kim-select{position:relative;z-index:20;width:100%}
+.kim-select-btn{width:100%;min-height:50px;padding:12px 44px 12px 14px;border:1px solid rgba(255,113,35,.58);border-radius:12px;background:#0d0c0b;color:#f7ece7;text-align:left;font-size:16px;position:relative;box-shadow:0 0 8px rgba(255,91,12,.13)}
+.kim-select-btn:after{content:'⌄';position:absolute;right:15px;top:50%;transform:translateY(-55%);color:#ff7626;font-size:22px}
+.kim-select-panel{display:none;position:fixed;left:20px;right:20px;top:9vh;max-height:82vh;overflow:auto;z-index:99999;border-radius:26px;border:1.5px solid #ff792c;background:linear-gradient(rgba(18,11,7,.95),rgba(10,8,7,.98));box-shadow:0 0 9px #ff8b42,0 0 25px rgba(255,94,15,.48),inset 0 0 20px rgba(255,103,23,.08);overscroll-behavior:contain}
+.kim-select-panel:before{content:'';position:absolute;inset:0;pointer-events:none;opacity:.16;background-size:220px 220px;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cg fill='none' stroke='%23ef7025' stroke-width='1.3'%3E%3Cpath d='M18 40l60-22-14 62zM22 40l42 40M36 34c7 5 12 2 16-3M51 55c7 4 12 2 16-3'/%3E%3Ccircle cx='165' cy='48' r='22'/%3E%3Cpath d='M165 26c5-10 14-11 20-5M150 48c10-6 20-6 29 0M118 145c16-15 38-15 54 0M124 150h42l-7 38h-28zM30 150c14-22 32-25 52-11-14 23-33 26-52 11z'/%3E%3C/g%3E%3C/svg%3E")}
+.kim-select-panel.open{display:block}
+.kim-option{position:relative;z-index:1;display:flex;align-items:center;gap:12px;width:100%;min-height:68px;padding:15px 18px;border:0;border-bottom:1px solid rgba(255,184,145,.18);background:transparent;color:#f8ebe5;text-align:left;font-size:18px}
+.kim-option:last-child{border-bottom:0}.kim-option span:first-child{flex:1}.kim-radio{width:25px;height:25px;border:3px solid #ead8cf;border-radius:50%;flex:0 0 25px;box-sizing:border-box}.kim-option.selected .kim-radio{border-color:#ff9a69;box-shadow:0 0 8px rgba(255,105,35,.5);position:relative}.kim-option.selected .kim-radio:after{content:'';position:absolute;inset:4px;border-radius:50%;background:#ff7b32}.kim-option.selected{color:#fff}.kim-select-backdrop{display:none;position:fixed;inset:0;background:rgba(0,0,0,.62);z-index:99998}.kim-select-backdrop.open{display:block}
+body.light-theme .kim-select-btn{background:#fff;color:#2c211d}.kim-select-panel{color-scheme:dark}
+
 </style>
 </head>
 <body>
@@ -1987,6 +2000,37 @@ Você pode acompanhar o andamento aqui no aplicativo.`);
 
   updateInstallButton();
 })();
+
+  // Cardápios personalizados: mantém os SELECTs originais para não alterar pedidos/preços.
+  function kimBuildSelect(select){
+    if(!select || select.dataset.kimReady==='1') return;
+    select.dataset.kimReady='1'; select.classList.add('kim-native-hidden');
+    const wrap=document.createElement('div'); wrap.className='kim-select';
+    const btn=document.createElement('button'); btn.type='button'; btn.className='kim-select-btn';
+    select.parentNode.insertBefore(wrap,select); wrap.appendChild(select); wrap.appendChild(btn);
+    const panel=document.createElement('div'); panel.className='kim-select-panel'; document.body.appendChild(panel);
+    const backdrop=document.createElement('div'); backdrop.className='kim-select-backdrop'; document.body.appendChild(backdrop);
+    function label(){ const o=select.options[select.selectedIndex]; btn.textContent=o?o.textContent:''; }
+    function close(){panel.classList.remove('open');backdrop.classList.remove('open');document.body.style.overflow='';}
+    function render(){
+      panel.innerHTML='';
+      [...select.options].forEach((o,i)=>{
+        if(o.disabled && !o.value) return;
+        const row=document.createElement('button'); row.type='button'; row.className='kim-option'+(i===select.selectedIndex?' selected':'');
+        const txt=document.createElement('span'); txt.textContent=o.textContent;
+        const radio=document.createElement('span'); radio.className='kim-radio';
+        row.append(txt,radio);
+        row.onclick=()=>{select.selectedIndex=i;select.dispatchEvent(new Event('change',{bubbles:true}));label();close();};
+        panel.appendChild(row);
+      });
+    }
+    btn.onclick=()=>{render();panel.classList.add('open');backdrop.classList.add('open');document.body.style.overflow='hidden';};
+    backdrop.onclick=close; label();
+    select.addEventListener('change',label);
+    new MutationObserver(()=>label()).observe(select,{childList:true,subtree:true});
+  }
+  ['flavor1','flavor2','sweetFlavor','sweetSize','drink'].forEach(id=>kimBuildSelect(document.getElementById(id)));
+
 </script>
 
 </body>
