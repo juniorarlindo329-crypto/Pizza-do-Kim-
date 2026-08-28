@@ -727,6 +727,17 @@ body.light-theme .theme-toggle{background:#fffffff0;color:#382820;border-color:#
     .notify-note{font-size:10px;color:#8f8782;line-height:1.4;margin-top:7px;text-align:center}
     body.light-theme .notify-note{color:#786c66}
 
+
+  .notify-reminder{position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.72);display:flex;align-items:center;justify-content:center;padding:20px}
+  .notify-reminder.hidden{display:none}
+  .notify-reminder-box{width:min(430px,100%);background:#171717;border:1px solid rgba(255,145,0,.35);border-radius:22px;padding:24px;text-align:center;box-shadow:0 22px 70px rgba(0,0,0,.55)}
+  .notify-reminder-icon{font-size:46px;margin-bottom:8px}
+  .notify-reminder-box h3{margin:0 0 9px;font-size:22px}
+  .notify-reminder-box p{margin:0 0 18px;color:#ccc;line-height:1.45}
+  .notify-reminder-actions{display:grid;gap:10px}
+  .notify-reminder-actions button{border:0;border-radius:14px;padding:14px 16px;font-weight:800;font-size:15px;cursor:pointer}
+  .notify-reminder-on{background:linear-gradient(135deg,#ff9d00,#ff5a00);color:#15100a}
+  .notify-reminder-later{background:#2a2a2a;color:#eee}
 </style>
 </head>
 <body>
@@ -1010,6 +1021,18 @@ body.light-theme .theme-toggle{background:#fffffff0;color:#382820;border-color:#
       </p>
     </aside>
   </div>
+
+  <div id="notifyReminder" class="notify-reminder hidden" role="dialog" aria-modal="true" aria-labelledby="notifyReminderTitle">
+    <div class="notify-reminder-box">
+      <div class="notify-reminder-icon">🔔</div>
+      <h3 id="notifyReminderTitle">Ative as notificações</h3>
+      <p>Receba um aviso no seu telefone quando sua pizza sair para entrega.</p>
+      <div class="notify-reminder-actions">
+        <button type="button" class="notify-reminder-on" id="notifyReminderOn">🔔 Ativar notificações</button>
+        <button type="button" class="notify-reminder-later" id="notifyReminderLater">Agora não</button>
+      </div>
+    </div>
+  </div>
   <canvas id="receiptCanvas" width="900" height="1200" style="display:none"></canvas>
   <footer id="contato">Pizza do Kim — sistema de pedidos</footer>
 </div>
@@ -1071,6 +1094,10 @@ body.light-theme .theme-toggle{background:#fffffff0;color:#382820;border-color:#
   ];
 
   const sweetPrices = {P:35, M:42};
+  const sweetMenu = [
+    {name:"Banana com canela", desc:"mussarela, banana, canela e doce de leite", prices:sweetPrices, sweet:true},
+    {name:"Dois amores", desc:"chocolate branco e chocolate preto", prices:sweetPrices, sweet:true}
+  ];
   const drinks = {
     "Coca-Cola 2L":14,
     "Guaraná 2L":10,
@@ -1083,17 +1110,30 @@ body.light-theme .theme-toggle{background:#fffffff0;color:#382820;border-color:#
   const q = id => document.getElementById(id);
   const brl = v => new Intl.NumberFormat("pt-BR",{style:"currency",currency:"BRL"}).format(v);
 
+  function flavorFromValue(value){
+    const [type,index]=String(value).split(":");
+    return type==="sweet" ? sweetMenu[+index] : menu[+index];
+  }
+
   function fillFlavors(){
-    [q("flavor1"),q("flavor2")].forEach(sel=>{
-      sel.innerHTML = menu.map((x,i)=>`<option value="${i}">${x.name}</option>`).join("");
-    });
+    const old2=q("flavor2").value;
+    q("flavor1").innerHTML = menu.map((x,i)=>`<option value="savory:${i}">${x.name}</option>`).join("");
+    let second = menu.map((x,i)=>`<option value="savory:${i}">${x.name}</option>`).join("");
+    if(state.mode==="meio" && (state.size==="P" || state.size==="M")){
+      second += `<optgroup label="🍫 Sabores doces — metade doce + metade salgada">` +
+        sweetMenu.map((x,i)=>`<option value="sweet:${i}">🍫 ${x.name} (doce)</option>`).join("") + `</optgroup>`;
+    }
+    q("flavor2").innerHTML=second;
+    if([...q("flavor2").options].some(o=>o.value===old2)) q("flavor2").value=old2;
   }
 
   function currentUnit(){
-    const a = menu[+q("flavor1").value].prices[state.size];
+    const aFlavor=flavorFromValue(q("flavor1").value);
+    const a = aFlavor.prices[state.size];
     let base = a;
     if(state.mode === "meio"){
-      const b = menu[+q("flavor2").value].prices[state.size];
+      const bFlavor=flavorFromValue(q("flavor2").value);
+      const b=bFlavor.prices[state.size];
       base = Math.max(a,b);
     }
     const crustExtra = state.crust === "Com borda" ? 7 : 0;
@@ -1101,8 +1141,8 @@ body.light-theme .theme-toggle{background:#fffffff0;color:#382820;border-color:#
   }
 
   function updatePrice(){
-    q("desc1").textContent = menu[+q("flavor1").value].desc;
-    q("desc2").textContent = menu[+q("flavor2").value].desc;
+    q("desc1").textContent = flavorFromValue(q("flavor1").value).desc;
+    q("desc2").textContent = flavorFromValue(q("flavor2").value).desc;
     const qty = Math.max(1, Math.min(20, parseInt(q("qty").value)||1));
     q("qty").value = qty;
     q("pizzaPrice").value = brl(currentUnit()*qty);
@@ -1111,7 +1151,7 @@ body.light-theme .theme-toggle{background:#fffffff0;color:#382820;border-color:#
   document.querySelectorAll("#sizes .choice").forEach(btn=>{
     btn.addEventListener("click",()=>{
       document.querySelectorAll("#sizes .choice").forEach(b=>b.classList.remove("active"));
-      btn.classList.add("active"); state.size=btn.dataset.size; updatePrice();
+      btn.classList.add("active"); state.size=btn.dataset.size; fillFlavors(); updatePrice();
     });
   });
 
@@ -1120,6 +1160,7 @@ body.light-theme .theme-toggle{background:#fffffff0;color:#382820;border-color:#
       document.querySelectorAll("#modes .choice").forEach(b=>b.classList.remove("active"));
       btn.classList.add("active"); state.mode=btn.dataset.mode;
       q("secondFlavorWrap").classList.toggle("hidden",state.mode!=="meio");
+      fillFlavors();
       updatePrice();
     });
   });
@@ -1140,13 +1181,15 @@ body.light-theme .theme-toggle{background:#fffffff0;color:#382820;border-color:#
 
   q("addPizza").addEventListener("click",()=>{
     const qty = Math.max(1,parseInt(q("qty").value)||1);
-    const f1 = menu[+q("flavor1").value].name;
-    const f2 = menu[+q("flavor2").value].name;
+    const f1 = flavorFromValue(q("flavor1").value).name;
+    const secondFlavor = flavorFromValue(q("flavor2").value);
+    const f2 = secondFlavor.name;
+    const mixedSweetSavory = state.mode==="meio" && !!secondFlavor.sweet;
     const unit = currentUnit();
     state.items.push({
       id:Date.now()+Math.random(),
       type:"pizza",
-      size:state.size, mode:state.mode, f1, f2, qty, unit,
+      size:state.size, mode:state.mode, f1, f2, qty, unit, mixedSweetSavory,
       crust:state.crust,
       crustFlavor:state.crust==="Com borda" ? q("crustFlavor").value : "",
       obs:q("obsPizza").value.trim()
@@ -1490,6 +1533,8 @@ body.light-theme .theme-toggle{background:#fffffff0;color:#382820;border-color:#
 
       if(localStorage.getItem("pizza_do_kim_push_enabled")==="yes" && Notification.permission==="granted"){
         enablePushForCurrentOrder().catch(()=>{});
+      } else {
+        showNotificationReminder();
       }
 
       alert(`✅ Pedido #${data.number || ""} enviado para a Pizza do Kim!
@@ -1505,6 +1550,17 @@ Você pode acompanhar o andamento aqui no aplicativo.`);
     }
   });
 
+
+  function showNotificationReminder(){
+    if(localStorage.getItem("pizza_do_kim_push_enabled")==="yes" && Notification.permission==="granted") return;
+    q("notifyReminder")?.classList.remove("hidden");
+  }
+  function hideNotificationReminder(){ q("notifyReminder")?.classList.add("hidden"); }
+  q("notifyReminderLater")?.addEventListener("click",hideNotificationReminder);
+  q("notifyReminderOn")?.addEventListener("click",async()=>{
+    await enablePushForCurrentOrder();
+    if(localStorage.getItem("pizza_do_kim_push_enabled")==="yes") hideNotificationReminder();
+  });
 
   function urlBase64ToUint8Array(base64String){
     const padding="=".repeat((4-base64String.length%4)%4);
