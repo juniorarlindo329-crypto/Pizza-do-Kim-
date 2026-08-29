@@ -827,6 +827,14 @@ body.light-theme .kim-select-btn{background:#fff;color:#2c211d}.kim-select-panel
 
 
 
+/* ===== MEIO A MEIO DOCE + SALGADA ===== */
+.mixed-half-note{margin-top:9px;padding:10px 12px;border:1px solid rgba(255,105,35,.42);border-radius:11px;background:rgba(255,92,18,.07);color:#ffd8c4;font-size:12px;line-height:1.45}
+.mixed-half-note strong{color:#ff8a45}
+.kim-group-title{position:relative;z-index:1;padding:12px 18px 8px;color:#ff9a62;font-size:13px;font-weight:900;letter-spacing:.25px;text-transform:uppercase;border-top:1px solid rgba(255,184,145,.18);background:rgba(255,107,34,.055)}
+body.light-theme .mixed-half-note{background:#fff4ed;color:#6d3c26}
+/* ===== FIM MEIO A MEIO ===== */
+
+
 /* ===== PIX + EFEITO DE TAMANHO ===== */
 .pix-payment-box{display:none;margin-top:14px;padding:16px;border-radius:16px;border:1px solid rgba(255,117,40,.72);background:linear-gradient(145deg,rgba(31,18,11,.98),rgba(12,10,9,.99));box-shadow:0 0 10px rgba(255,102,24,.22),inset 0 0 14px rgba(255,116,34,.05)}
 .pix-payment-box.show{display:block;animation:pixOpen .24s ease-out}
@@ -948,6 +956,7 @@ body.light-theme .pix-key-row code{color:#2b211c}
             <label for="flavor2">Sabor 2</label>
             <select id="flavor2"></select>
             <div class="price-note" id="desc2"></div>
+            <div class="mixed-half-note" id="mixedHalfNote"><strong>🍕 + 🍫 Metade salgada + metade doce:</strong> disponível nos tamanhos P e M. Escolha um sabor doce aqui no Sabor 2.</div>
           </div>
         </div>
 
@@ -1251,6 +1260,14 @@ body.light-theme .pix-key-row code{color:#2b211c}
     }
     q("flavor2").innerHTML=second;
     if([...q("flavor2").options].some(o=>o.value===old2)) q("flavor2").value=old2;
+    const mixedNote=q("mixedHalfNote");
+    if(mixedNote){
+      const available=state.mode==="meio" && (state.size==="P" || state.size==="M");
+      mixedNote.style.display=state.mode==="meio" ? "block" : "none";
+      mixedNote.innerHTML=available
+        ? '<strong>🍕 + 🍫 Metade salgada + metade doce:</strong> disponível neste tamanho. No Sabor 2, escolha uma opção da seção “Sabores doces”.'
+        : '<strong>🍕 + 🍫 Metade salgada + metade doce:</strong> disponível nos tamanhos P e M.';
+    }
   }
 
   function currentUnit(){
@@ -2110,14 +2127,23 @@ Você pode acompanhar o andamento aqui no aplicativo.`);
     function close(){panel.classList.remove('open');backdrop.classList.remove('open');document.body.style.overflow='';}
     function render(){
       panel.innerHTML='';
-      [...select.options].forEach((o,i)=>{
+      const addOption=(o)=>{
         if(o.disabled && !o.value) return;
+        const i=[...select.options].indexOf(o);
         const row=document.createElement('button'); row.type='button'; row.className='kim-option'+(i===select.selectedIndex?' selected':'');
         const txt=document.createElement('span'); txt.textContent=o.textContent;
         const radio=document.createElement('span'); radio.className='kim-radio';
         row.append(txt,radio);
         row.onclick=()=>{select.selectedIndex=i;select.dispatchEvent(new Event('change',{bubbles:true}));label();close();};
         panel.appendChild(row);
+      };
+      [...select.children].forEach(node=>{
+        if(node.tagName==='OPTGROUP'){
+          const group=document.createElement('div'); group.className='kim-group-title'; group.textContent=node.label; panel.appendChild(group);
+          [...node.children].forEach(addOption);
+        }else if(node.tagName==='OPTION'){
+          addOption(node);
+        }
       });
     }
     btn.onclick=()=>{render();panel.classList.add('open');backdrop.classList.add('open');document.body.style.overflow='hidden';};

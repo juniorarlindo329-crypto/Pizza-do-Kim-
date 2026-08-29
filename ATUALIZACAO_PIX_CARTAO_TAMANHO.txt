@@ -13,3 +13,11 @@ Pizza do Kim — atualização
 - ao tocar em P, M, G ou GG, o botão cresce levemente, ganha brilho e mostra “Selecionado”.
 
 O restante das funções foi mantido.
+
+
+CORREÇÃO — MEIO A MEIO DOCE + SALGADA
+- Restaurada/garantida a opção de escolher metade salgada + metade doce.
+- Disponível nos tamanhos P e M (os tamanhos cadastrados para pizzas doces).
+- No modo “Meio a meio”, o Sabor 2 mostra uma seção destacada de sabores doces.
+- O preço continua usando o maior valor entre os dois sabores.
+- Mantidos Pix, cartão na entrega, QR Code, menus neon e efeito nos tamanhos.
