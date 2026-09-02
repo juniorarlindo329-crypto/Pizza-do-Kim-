@@ -1,0 +1,13 @@
+PIZZA DO KIM — VERSÃO 1.0.1
+
+Atualização no aplicativo do cliente:
+- Detecta quando o link é aberto pelo navegador interno do Instagram.
+- Exibe automaticamente um tutorial profissional explicando como abrir no Chrome.
+- Mostra passos: 3 pontinhos > Abrir no navegador externo/Chrome > ativar notificações.
+- Inclui botão para copiar o link do Pizza do Kim.
+- Ao tentar ativar notificações dentro do Instagram, o tutorial é exibido novamente.
+- Remove a experiência confusa do alerta simples para usuários do Instagram.
+
+Versões:
+- Cliente: 1.0.1
+- Vendedor: 1.0.0 (sem alterações nesta atualização)

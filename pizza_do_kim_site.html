@@ -861,6 +861,49 @@ body.light-theme .pix-key-row code{color:#2b211c}
 @media(max-width:520px){.pix-actions{grid-template-columns:1fr}}
 
 </style>
+
+<style id="instagram-browser-guide-style">
+  .ig-guide{
+    position:fixed;inset:0;z-index:99999;
+    display:flex;align-items:center;justify-content:center;
+    padding:20px;background:rgba(0,0,0,.82);backdrop-filter:blur(7px);
+  }
+  .ig-guide.hidden{display:none!important}
+  .ig-guide-box{
+    width:min(440px,100%);box-sizing:border-box;
+    background:linear-gradient(180deg,#17110e 0%,#0d0d0d 100%);
+    border:1px solid rgba(255,126,31,.55);
+    box-shadow:0 18px 70px rgba(0,0,0,.7),0 0 28px rgba(255,102,0,.16);
+    border-radius:24px;padding:24px 20px 20px;text-align:center;color:#fff;
+  }
+  .ig-guide-badge{
+    width:62px;height:62px;margin:0 auto 12px;border-radius:19px;
+    display:grid;place-items:center;font-size:30px;
+    background:linear-gradient(135deg,#ff8b22,#d9441d);
+    box-shadow:0 8px 26px rgba(255,103,28,.25);
+  }
+  .ig-guide-box h3{margin:4px 0 10px;font-size:22px;line-height:1.18;color:#fff}
+  .ig-guide-intro{margin:0 0 16px;color:#d8d8d8;font-size:14px;line-height:1.5}
+  .ig-guide-steps{display:grid;gap:9px;margin:14px 0 17px;text-align:left}
+  .ig-guide-step{
+    display:flex;gap:11px;align-items:flex-start;padding:11px;
+    border-radius:14px;background:rgba(255,255,255,.055);
+    border:1px solid rgba(255,255,255,.08);
+  }
+  .ig-guide-step span{
+    flex:0 0 27px;height:27px;border-radius:50%;display:grid;place-items:center;
+    background:#ff7417;color:#fff;font-weight:900;font-size:13px;
+  }
+  .ig-guide-step p{margin:2px 0 0;font-size:13px;line-height:1.42;color:#eee}
+  .ig-guide-copy,.ig-guide-ok{
+    width:100%;border:0;border-radius:14px;padding:14px 13px;
+    font-weight:800;font-size:14px;cursor:pointer;
+  }
+  .ig-guide-copy{margin-bottom:9px;background:#252525;color:#fff;border:1px solid rgba(255,255,255,.12)}
+  .ig-guide-ok{background:linear-gradient(90deg,#ff7a18,#ff4d16);color:#fff}
+  .ig-guide-box small{display:block;margin-top:11px;color:#999;line-height:1.35}
+</style>
+
 </head>
 <body>
 <button id="themeToggle" class="theme-toggle" type="button">☀️ Claro</button>
@@ -1168,12 +1211,56 @@ body.light-theme .pix-key-row code{color:#2b211c}
       </div>
     </div>
   </div>
+
+  <div id="instagramBrowserGuide" class="ig-guide hidden" role="dialog" aria-modal="true" aria-labelledby="igGuideTitle">
+    <div class="ig-guide-box">
+      <div class="ig-guide-badge">📲</div>
+      <h3 id="igGuideTitle">Abra no Chrome para receber notificações</h3>
+      <p class="ig-guide-intro">
+        Você abriu o Pizza do Kim pelo Instagram. O navegador do Instagram não permite ativar as notificações do pedido.
+      </p>
+      <div class="ig-guide-steps">
+        <div class="ig-guide-step"><span>1</span><p>Toque nos <strong>3 pontinhos ⋮</strong> no canto superior direito.</p></div>
+        <div class="ig-guide-step"><span>2</span><p>Escolha <strong>“Abrir no navegador externo”</strong> ou <strong>“Abrir no Chrome”</strong>.</p></div>
+        <div class="ig-guide-step"><span>3</span><p>No Chrome, volte em <strong>Ativar notificações</strong> e toque em <strong>Permitir</strong>.</p></div>
+      </div>
+      <button type="button" class="ig-guide-copy" id="igGuideCopyLink">🔗 Copiar link do Pizza do Kim</button>
+      <button type="button" class="ig-guide-ok" id="igGuideOk">Entendi</button>
+      <small>Assim você poderá receber o aviso quando seu pedido sair para entrega.</small>
+    </div>
+  </div>
+
   <canvas id="receiptCanvas" width="900" height="1200" style="display:none"></canvas>
   <footer id="contato">Pizza do Kim — sistema de pedidos</footer>
 </div>
 
 <script>
 (() => {
+  const isInstagramBrowser = () => /Instagram/i.test(navigator.userAgent || "");
+  const showInstagramGuide = () => document.getElementById("instagramBrowserGuide")?.classList.remove("hidden");
+  const hideInstagramGuide = () => document.getElementById("instagramBrowserGuide")?.classList.add("hidden");
+
+  document.getElementById("igGuideOk")?.addEventListener("click", hideInstagramGuide);
+  document.getElementById("igGuideCopyLink")?.addEventListener("click", async () => {
+    const btn = document.getElementById("igGuideCopyLink");
+    const link = window.location.href;
+    try{
+      await navigator.clipboard.writeText(link);
+      if(btn){
+        const old = btn.textContent;
+        btn.textContent = "✓ Link copiado";
+        setTimeout(() => btn.textContent = old, 1800);
+      }
+    }catch(e){
+      window.prompt("Copie o link abaixo e abra no Chrome:", link);
+    }
+  });
+
+  // Ao entrar pelo navegador interno do Instagram, mostra o tutorial automaticamente.
+  if(isInstagramBrowser()){
+    window.setTimeout(showInstagramGuide, 450);
+  }
+
   const TUTORIAL_KEY="pizza_do_kim_tutorial_v2";
   const tutorialById=id=>document.getElementById(id);
   const tutorialBox=tutorialById("firstTutorial");
@@ -1811,7 +1898,11 @@ Você pode acompanhar o andamento aqui no aplicativo.`);
       return false;
     }
     if(!("serviceWorker" in navigator) || !("PushManager" in window) || !("Notification" in window)){
-      alert("Este navegador não oferece suporte às notificações do aplicativo.");
+      if(isInstagramBrowser()){
+        showInstagramGuide();
+      }else{
+        alert("Este navegador não oferece suporte às notificações do aplicativo. Abra o Pizza do Kim no Chrome para ativar as notificações.");
+      }
       return false;
     }
 
@@ -2156,6 +2247,6 @@ Você pode acompanhar o andamento aqui no aplicativo.`);
 </script>
 
 
-<div class="app-version-footer" style="width:100%;box-sizing:border-box;text-align:center;padding:22px 12px 90px;color:rgba(255,255,255,.62);font-size:12px;font-weight:600;letter-spacing:.25px;">Pizza do Kim • Versão 1.0.0</div>
+<div class="app-version-footer" style="width:100%;box-sizing:border-box;text-align:center;padding:22px 12px 90px;color:rgba(255,255,255,.62);font-size:12px;font-weight:600;letter-spacing:.25px;">Pizza do Kim • Versão 1.0.1</div>
 </body>
 </html>
