@@ -1830,7 +1830,7 @@ Você pode acompanhar o andamento aqui no aplicativo.`);
       render();
       window.scrollTo({top:0,behavior:"smooth"});
     }catch(err){
-      alert("Não foi possível enviar o pedido para a pizzaria. Verifique sua internet e tente novamente.");
+      alert(err.message || "Não foi possível enviar o pedido para a pizzaria. Verifique sua internet e tente novamente.");
     }finally{
       btn.disabled=false;
       btn.textContent=original;
