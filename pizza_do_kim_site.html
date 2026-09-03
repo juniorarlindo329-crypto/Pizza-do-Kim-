@@ -1830,12 +1830,18 @@ Você pode acompanhar o andamento aqui no aplicativo.`);
       render();
       window.scrollTo({top:0,behavior:"smooth"});
     }catch(err){
-      alert(err.message || "Não foi possível enviar o pedido para a pizzaria. Verifique sua internet e tente novamente.");
+      if(String(err.message || "").toLowerCase().includes("pix")){
+  document.getElementById("pixAlertOverlay")?.classList.remove("hidden");
+}else{
+  alert(err.message || "Não foi possível enviar o pedido para a pizzaria. Verifique sua internet e tente novamente.");
+}
     }finally{
       btn.disabled=false;
       btn.textContent=original;
     }
-  });
+  }); function closePixAlert(){
+  document.getElementById("pixAlertOverlay")?.classList.add("hidden");
+  }
 
 
   function showNotificationReminder(){
