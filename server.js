@@ -458,7 +458,7 @@ async function checkPix(
 
   const data =
     response.data || {};
-
+console.log("SICOOB PIX STATUS:", data.status, "PIX RECEBIDOS:", Array.isArray(data.pix) ? data.pix.length : 0);
   const paid =
     data.status ===
       "CONCLUIDA" ||
