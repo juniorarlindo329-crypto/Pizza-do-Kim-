@@ -860,6 +860,17 @@ body.light-theme .pix-key-row{background:#fff;color:#2b211c}
 body.light-theme .pix-key-row code{color:#2b211c}
 @media(max-width:520px){.pix-actions{grid-template-columns:1fr}}
 
+
+    .hero-info-pill.hero-hours{
+      background:linear-gradient(135deg,#ff6a00,#ff2d00);
+      color:#fff;
+      border:1px solid rgba(255,255,255,.35);
+      box-shadow:0 6px 18px rgba(255,72,0,.35);
+      font-weight:900;
+      letter-spacing:.3px;
+      padding:10px 14px;
+    }
+
 </style>
 
 <style id="instagram-browser-guide-style">
@@ -991,6 +1002,7 @@ body.light-theme .pix-key-row code{color:#2b211c}
     <div class="hero-copy">
       <span class="hero-info-pill">📍 São José do Jacuri - MG</span>
       <span class="hero-info-pill">🛵 Somente Delivery</span>
+      <span class="hero-info-pill hero-hours">🕒 TERÇA A DOMINGO • 18:30 ÀS 22:00</span>
       <span class="hero-info-pill hero-rating">⭐ 5,0 no Google</span>
     </div>
   </div>
@@ -1006,10 +1018,10 @@ body.light-theme .pix-key-row code{color:#2b211c}
 
         <label>Tamanho</label>
         <div class="sizes" id="sizes">
-          <button type="button" class="choice active" data-size="P"><span class="pizza-icon whole-pizza"><i></i><i></i><i></i><i></i></span><b>P</b><small>Pequena</small></button>
-          <button type="button" class="choice" data-size="M"><span class="pizza-icon whole-pizza"><i></i><i></i><i></i><i></i></span><b>M</b><small>Média</small></button>
-          <button type="button" class="choice" data-size="G"><span class="pizza-icon whole-pizza"><i></i><i></i><i></i><i></i></span><b>G</b><small>Grande</small></button>
-          <button type="button" class="choice" data-size="GG"><span class="pizza-icon whole-pizza"><i></i><i></i><i></i><i></i></span><b>GG</b><small>Gigante</small></button>
+          <button type="button" class="choice active" data-size="P"><span class="pizza-icon whole-pizza"><i></i><i></i><i></i><i></i></span><b>P</b><small>Pequena • 4 fatias</small></button>
+          <button type="button" class="choice" data-size="M"><span class="pizza-icon whole-pizza"><i></i><i></i><i></i><i></i></span><b>M</b><small>Média • 6 fatias</small></button>
+          <button type="button" class="choice" data-size="G"><span class="pizza-icon whole-pizza"><i></i><i></i><i></i><i></i></span><b>G</b><small>Grande • 8 fatias</small></button>
+          <button type="button" class="choice" data-size="GG"><span class="pizza-icon whole-pizza"><i></i><i></i><i></i><i></i></span><b>GG</b><small>Gigante • 12 fatias</small></button>
         </div>
 
         <label>Como deseja?</label>
@@ -1079,8 +1091,8 @@ body.light-theme .pix-key-row code{color:#2b211c}
           <div>
             <label for="sweetSize">Tamanho</label>
             <select id="sweetSize">
-              <option value="P">P — R$ 35,00</option>
-              <option value="M">M — R$ 42,00</option>
+              <option value="P">P — 4 fatias — R$ 35,00</option>
+              <option value="M">M — 6 fatias — R$ 42,00</option>
             </select>
           </div>
         </div>
@@ -1101,6 +1113,8 @@ body.light-theme .pix-key-row code{color:#2b211c}
               <option value="Coca lata">Coca lata — R$ 5,00</option>
               <option value="Guaraná 1L">Guaraná 1L — R$ 6,50</option>
               <option value="Kuat">Kuat — R$ 8,00</option>
+              <option value="Suco Del Valle Uva 1L">Suco Del Valle Uva 1L — R$ 6,50</option>
+              <option value="Suco Del Valle Laranja 1L">Suco Del Valle Laranja 1L — R$ 6,50</option>
             </select>
           </div>
           <div>
@@ -1352,7 +1366,9 @@ body.light-theme .pix-key-row code{color:#2b211c}
     "Sukita laranja 2L":10,
     "Coca lata":5,
     "Guaraná 1L":6.5,
-    "Kuat":8
+    "Kuat":8,
+    "Suco Del Valle Uva 1L":6.5,
+    "Suco Del Valle Laranja 1L":6.5
   };
   const state = {size:"P", mode:"inteira", crust:"Sem borda", items:[]};
   const q = id => document.getElementById(id);
