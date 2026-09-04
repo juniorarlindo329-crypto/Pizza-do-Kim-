@@ -1162,14 +1162,11 @@ body.light-theme .pix-key-row code{color:#2b211c}
         </div>
         <div id="pixPaymentBox" class="pix-payment-box" aria-live="polite">
           <h3>💠 Pagamento via Pix</h3>
-          <p>Use a chave abaixo ou escaneie o QR Code. O QR acompanha o total atual do pedido.</p>
-          <div class="pix-key-row"><span>Chave:</span><code id="pixKeyText">(33) 99847-1303</code></div>
-          <div class="pix-actions">
-            <button type="button" class="pix-action primary" id="copyPixKey">📋 Copiar chave Pix</button>
-            <button type="button" class="pix-action" id="copyPixCode">📲 Copiar Pix copia e cola</button>
+          <p id="pixInstruction">Confira o pedido e toque em <strong>Enviar pedido</strong>. O Pix Copia e Cola será gerado com o valor exato automaticamente.</p>
+          <div class="pix-actions" style="grid-template-columns:1fr">
+            <button type="button" class="pix-action primary" id="copyPixCode" style="display:none">📲 Copiar código Pix</button>
           </div>
-          <div class="pix-qr-wrap"><img id="pixQrImage" alt="QR Code Pix Pizza do Kim"></div>
-          <p class="pix-total-note" id="pixTotalNote"></p>
+          <p class="pix-total-note" id="pixTotalNote">O código Pix será gerado somente quando você enviar o pedido.</p>
           <div class="pix-copy-status" id="pixCopyStatus"></div>
         </div>
         <label for="change">Troco para</label>
@@ -1494,9 +1491,15 @@ body.light-theme .pix-key-row code{color:#2b211c}
     render();
   }
 
-  const PIX_KEY="(33) 99847-1303";
+  let pixPaymentTxid="";
+  let pixPaymentPaid=false;
+  let pixStatusTimer=null;
+  let pixLastAmount="";
+  let pixPayload="";
+  let pixGenerating=false;
 
   async function copyText(value,message){
+    if(!value) return;
     try{
       await navigator.clipboard.writeText(value);
     }catch(e){
@@ -1510,116 +1513,147 @@ body.light-theme .pix-key-row code{color:#2b211c}
     }
   }
 
-  let pixPaymentTxid="";
-let pixPaymentPaid=false;
-let pixStatusTimer=null;
-let pixLastAmount="";
-
-function stopPixCheck(){
-  if(pixStatusTimer){
-    clearInterval(pixStatusTimer);
-    pixStatusTimer=null;
-  }
-}
-
-async function checkPixPayment(){
-  if(!pixPaymentTxid) return false;
-
-  try{
-    const res=await fetch(
-      `/api/pix/status?txid=${encodeURIComponent(pixPaymentTxid)}`,
-      {cache:"no-store"}
-    );
-
-    const data=await res.json();
-
-    if(res.ok && data.paid){
-      pixPaymentPaid=true;
-      stopPixCheck();
-
-      q("pixTotalNote").textContent="✅ Pagamento aprovado! Seu pedido já pode ser enviado.";
-
-      return true;
+  function stopPixCheck(){
+    if(pixStatusTimer){
+      clearInterval(pixStatusTimer);
+      pixStatusTimer=null;
     }
-  }catch(e){
-    console.error("Erro ao verificar Pix:",e);
   }
 
-  return false;
-}
+  function currentOrderTotal(){
+    const subtotal=state.items.reduce((s,i)=>s+i.qty*i.unit,0);
+    return subtotal+getDeliveryFee();
+  }
 
-async function refreshPixBox(){
-  const box=q("pixPaymentBox");
-  if(!box) return;
-
-  const payment=q("payment").value;
-  const isPix=payment==="Pix";
-
-  box.classList.toggle("show",isPix);
-  q("change").disabled=payment!=="Dinheiro";
-
-  if(!isPix){
+  function resetPixPayment(){
     stopPixCheck();
-    return;
-  }
-
-  const subtotal=state.items.reduce((s,i)=>s+i.qty*i.unit,0);
-  const total=subtotal+getDeliveryFee();
-  const amount=total.toFixed(2);
-
-  if(total<=0){
-    q("pixTotalNote").textContent="Adicione os itens ao pedido para gerar o Pix.";
-    return;
-  }
-
-  if(pixPaymentTxid && pixLastAmount===amount){
-    return;
-  }
-
-  stopPixCheck();
-  pixPaymentTxid="";
-  pixPaymentPaid=false;
-  pixLastAmount=amount;
-
-  q("pixTotalNote").textContent="⏳ Gerando Pix de "+brl(total)+"...";
-
-  try{
-    const res=await fetch("/api/pix/create",{
-      method:"POST",
-      headers:{"Content-Type":"application/json"},
-      body:JSON.stringify({amount:total})
-    });
-
-    const data=await res.json();
-
-    if(!res.ok){
-      throw new Error(data.error||"Pix indisponível");
-    }
-
-    pixPaymentTxid=data.txid;
-    q("pixQrImage").dataset.payload=data.payload||"";
-    q("pixQrImage").removeAttribute("src");
-
-    q("pixTotalNote").textContent=
-      "Pix de "+brl(total)+" gerado. Aguardando pagamento...";
-
-    pixStatusTimer=setInterval(checkPixPayment,3000);
-
-  }catch(e){
-    console.error("Erro Pix:",e);
     pixPaymentTxid="";
     pixPaymentPaid=false;
-    q("pixQrImage").removeAttribute("src");
-    q("pixQrImage").dataset.payload="";
-    q("pixTotalNote").textContent=
-      "Não foi possível gerar o Pix. Tente novamente.";
+    pixLastAmount="";
+    pixPayload="";
+    pixGenerating=false;
+    const copyBtn=q("copyPixCode");
+    if(copyBtn) copyBtn.style.display="none";
   }
-}
 
-  q("copyPixKey")?.addEventListener("click",()=>copyText(PIX_KEY,"✓ Chave Pix copiada"));
+  async function checkPixPayment(){
+    if(!pixPaymentTxid) return false;
+    try{
+      const res=await fetch(
+        `/api/pix/status?txid=${encodeURIComponent(pixPaymentTxid)}`,
+        {cache:"no-store"}
+      );
+      const data=await res.json().catch(()=>({}));
+      if(res.ok && data.paid){
+        pixPaymentPaid=true;
+        stopPixCheck();
+        if(q("pixTotalNote")){
+          q("pixTotalNote").textContent="✅ Pagamento aprovado! Enviando seu pedido para a pizzaria...";
+        }
+        return true;
+      }
+    }catch(e){
+      console.error("Erro ao verificar Pix:",e);
+    }
+    return false;
+  }
+
+  function startPixCheck(){
+    stopPixCheck();
+    pixStatusTimer=setInterval(checkPixPayment,3000);
+  }
+
+  async function createPixForCurrentOrder(){
+    const total=currentOrderTotal();
+    const amount=total.toFixed(2);
+
+    if(total<=0) throw new Error("Adicione os itens ao pedido antes de gerar o Pix.");
+
+    if(pixPaymentTxid && pixLastAmount===amount && pixPayload){
+      if(!pixPaymentPaid && !pixStatusTimer) startPixCheck();
+      return true;
+    }
+
+    if(pixGenerating) return false;
+    pixGenerating=true;
+    resetPixPayment();
+    pixGenerating=true;
+    pixLastAmount=amount;
+
+    if(q("pixTotalNote")){
+      q("pixTotalNote").textContent="⏳ Gerando Pix de "+brl(total)+"...";
+    }
+
+    try{
+      const res=await fetch("/api/pix/create",{
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({amount:total})
+      });
+      const data=await res.json().catch(()=>({}));
+      if(!res.ok) throw new Error(data.error||"Pix indisponível");
+
+      pixPaymentTxid=data.txid||"";
+      pixPayload=data.payload||"";
+      pixPaymentPaid=false;
+
+      if(!pixPaymentTxid || !pixPayload){
+        throw new Error("O Sicoob não retornou o código Pix.");
+      }
+
+      const copyBtn=q("copyPixCode");
+      if(copyBtn) copyBtn.style.display="block";
+      if(q("pixTotalNote")){
+        q("pixTotalNote").textContent=
+          "✅ Pix de "+brl(total)+" gerado. Copie o código, pague no seu banco e aguarde a confirmação automática.";
+      }
+
+      startPixCheck();
+      return true;
+    }catch(e){
+      resetPixPayment();
+      if(q("pixTotalNote")){
+        q("pixTotalNote").textContent="❌ Não foi possível gerar o Pix. Tente novamente.";
+      }
+      throw e;
+    }finally{
+      pixGenerating=false;
+    }
+  }
+
+  function refreshPixBox(){
+    const box=q("pixPaymentBox");
+    if(!box) return;
+
+    const payment=q("payment").value;
+    const isPix=payment==="Pix";
+    box.classList.toggle("show",isPix);
+    q("change").disabled=payment!=="Dinheiro";
+
+    if(!isPix){
+      resetPixPayment();
+      return;
+    }
+
+    const total=currentOrderTotal();
+    const amount=total.toFixed(2);
+
+    // Se o cliente alterar itens/taxa depois de gerar o Pix, invalida o código anterior.
+    if(pixPaymentTxid && pixLastAmount && pixLastAmount!==amount){
+      resetPixPayment();
+    }
+
+    if(!pixPaymentTxid && q("pixTotalNote")){
+      q("pixTotalNote").textContent=
+        total>0
+          ? "Ao tocar em Enviar pedido, será gerado um Pix de "+brl(total)+" com o valor automático."
+          : "Adicione os itens ao pedido para gerar o Pix.";
+    }
+  }
+
   q("copyPixCode")?.addEventListener("click",()=>{
-    const payload=q("pixQrImage")?.dataset.payload||PIX_KEY;
-    copyText(payload,"✓ Pix copia e cola copiado");
+    if(!pixPayload) return;
+    copyText(pixPayload,"✓ Código Pix copiado. Agora cole no seu banco.");
   });
 
   function customerText(){
@@ -1739,9 +1773,9 @@ async function refreshPixBox(){
         address:`${deliveryPlaceName()} — ${q("address").value.trim()}`,
         reference:q("reference").value.trim(),
         payment:q("payment").value,
-        paymentTxid: pixPaymentTxid,
         change:q("payment").value==="Dinheiro" ? q("change").value.trim() : ""
       },
+      paymentTxid: pixPaymentTxid,
       items,
       deliveryFee:getDeliveryFee()
     };
@@ -1899,12 +1933,43 @@ async function refreshPixBox(){
     }
     if(!validateDelivery()) return;
     if(!validateCustomer()) return;
-if(q("payment").value==="Pix" && !pixPaymentPaid){
-  document.getElementById("pixAlertOverlay").style.display="flex";
-  return;
-  }
+
     const btn=q("whatsappBtn");
     const original=btn.textContent;
+
+    // PIX: no primeiro toque, gera um código dinâmico com o valor exato.
+    // Depois do pagamento, a confirmação é automática e o pedido é enviado.
+    if(q("payment").value==="Pix"){
+      if(!pixPaymentTxid){
+        btn.disabled=true;
+        btn.textContent="⏳ Gerando Pix...";
+        try{
+          await createPixForCurrentOrder();
+          btn.textContent=original;
+          btn.disabled=false;
+          q("pixPaymentBox")?.scrollIntoView({behavior:"smooth",block:"center"});
+          return;
+        }catch(err){
+          btn.disabled=false;
+          btn.textContent=original;
+          alert(err.message || "Não foi possível gerar o Pix. Tente novamente.");
+          return;
+        }
+      }
+
+      if(!pixPaymentPaid){
+        const paidNow=await checkPixPayment();
+        if(!paidNow){
+          q("pixPaymentBox")?.scrollIntoView({behavior:"smooth",block:"center"});
+          if(q("pixTotalNote")){
+            q("pixTotalNote").textContent=
+              "⏳ Aguardando o Sicoob confirmar o pagamento. Depois de pagar, o pedido será enviado automaticamente.";
+          }
+          return;
+        }
+      }
+    }
+
     btn.disabled=true;
     btn.textContent="⏳ Enviando pedido...";
 
@@ -1936,21 +2001,36 @@ if(q("payment").value==="Pix" && !pixPaymentPaid){
 
       alert(`✅ Pedido #${data.number || ""} enviado para a Pizza do Kim!
 Você pode acompanhar o andamento aqui no aplicativo.`);
+
       state.items=[];
+      resetPixPayment();
       render();
       window.scrollTo({top:0,behavior:"smooth"});
     }catch(err){
-      if(String(err.message || "").toLowerCase().includes("pix")){
-  document.getElementById("pixAlertOverlay").style.display="flex";
-}else{
-  alert(err.message || "Não foi possível enviar o pedido para a pizzaria. Verifique sua internet e tente novamente.");
-}
+      alert(err.message || "Não foi possível enviar o pedido para a pizzaria. Verifique sua internet e tente novamente.");
     }finally{
       btn.disabled=false;
       btn.textContent=original;
     }
-  }); function closePixAlert(){
-  document.getElementById("pixAlertOverlay").style.display="none";
+  });
+
+  // Enquanto o Pix estiver aberto, confirma e envia automaticamente após o pagamento.
+  setInterval(async()=>{
+    if(
+      q("payment")?.value==="Pix" &&
+      pixPaymentTxid &&
+      !pixPaymentPaid &&
+      state.items.length
+    ){
+      const paid=await checkPixPayment();
+      if(paid){
+        q("whatsappBtn")?.click();
+      }
+    }
+  },3000);
+
+  function closePixAlert(){
+    document.getElementById("pixAlertOverlay").style.display="none";
   }
 
 
