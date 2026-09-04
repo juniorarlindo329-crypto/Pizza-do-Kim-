@@ -1598,6 +1598,7 @@ const server =
             pixTxid =
               String(
                 raw.paymentTxid ||
+                (raw.customer && raw.customer.paymentTxid) ||
                   ""
               );
 
@@ -1624,6 +1625,32 @@ const server =
                 {
                   error:
                     "Pagamento Pix ainda não foi aprovado."
+                }
+              );
+            }
+
+            // Confere também o valor cobrado no Sicoob para impedir
+            // que um Pix de outro valor seja usado neste pedido.
+            const charge = await sicoobApi(
+              "/cob/" + encodeURIComponent(
+                String(pixTxid).replace(/[^A-Za-z0-9]/g, "").slice(0, 35)
+              )
+            );
+            const paidAmount = Number(
+              charge.data &&
+              charge.data.valor &&
+              charge.data.valor.original
+            );
+            if (
+              !Number.isFinite(paidAmount) ||
+              Math.abs(paidAmount - Number(body.total)) > 0.009
+            ) {
+              return send(
+                res,
+                409,
+                {
+                  error:
+                    "O valor do Pix não corresponde ao total deste pedido."
                 }
               );
             }
