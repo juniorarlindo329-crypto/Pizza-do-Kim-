@@ -1870,7 +1870,10 @@ async function refreshPixBox(){
     }
     if(!validateDelivery()) return;
     if(!validateCustomer()) return;
-
+if(q("payment").value==="Pix" && !pixPaymentPaid){
+  document.getElementById("pixAlertOverlay")?.classList.remove("hidden");
+  return;
+  }
     const btn=q("whatsappBtn");
     const original=btn.textContent;
     btn.disabled=true;
