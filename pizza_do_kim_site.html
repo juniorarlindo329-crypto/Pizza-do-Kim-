@@ -907,7 +907,7 @@ body.light-theme .pix-key-row code{color:#2b211c}
 </head>
 <body>
   <div id="pixAlertOverlay" class="hidden"
-     style="position:fixed;inset:0;z-index:999999;display:flex;background:rgba(0,0,0,.82);backdrop-filter:blur(7px);align-items:center;justify-content:center;padding:18px;">
+     style="position:fixed;inset:0;z-index:999999;display:none;background:rgba(0,0,0,.82);backdrop-filter:blur(7px);align-items:center;justify-content:center;padding:18px;">
 
   <div style="width:min(100%,460px);background:linear-gradient(180deg,#181310,#0b0b0b);border:1px solid #ff761e;border-radius:28px;padding:28px 22px 22px;text-align:center;color:white;box-shadow:0 25px 80px rgba(0,0,0,.8);">
 
@@ -928,7 +928,7 @@ body.light-theme .pix-key-row code{color:#2b211c}
     </p>
 
     <button type="button"
-      onclick="document.getElementById('pixAlertOverlay').classList.add('hidden')"
+      onclick="document.getElementById('pixAlertOverlay').style.display='none'"
       style="width:100%;min-height:55px;border:0;border-radius:16px;background:linear-gradient(90deg,#ff711c,#ffa51f);font-size:17px;font-weight:900;">
       Entendi
     </button>
@@ -1900,7 +1900,7 @@ async function refreshPixBox(){
     if(!validateDelivery()) return;
     if(!validateCustomer()) return;
 if(q("payment").value==="Pix" && !pixPaymentPaid){
-  document.getElementById("pixAlertOverlay")?.classList.remove("hidden");
+  document.getElementById("pixAlertOverlay").style.display="flex";
   return;
   }
     const btn=q("whatsappBtn");
@@ -1941,7 +1941,7 @@ Você pode acompanhar o andamento aqui no aplicativo.`);
       window.scrollTo({top:0,behavior:"smooth"});
     }catch(err){
       if(String(err.message || "").toLowerCase().includes("pix")){
-  document.getElementById("pixAlertOverlay")?.classList.remove("hidden");
+  document.getElementById("pixAlertOverlay").style.display="flex";
 }else{
   alert(err.message || "Não foi possível enviar o pedido para a pizzaria. Verifique sua internet e tente novamente.");
 }
@@ -1950,7 +1950,7 @@ Você pode acompanhar o andamento aqui no aplicativo.`);
       btn.textContent=original;
     }
   }); function closePixAlert(){
-  document.getElementById("pixAlertOverlay")?.classList.add("hidden");
+  document.getElementById("pixAlertOverlay").style.display="none";
   }
 
 
