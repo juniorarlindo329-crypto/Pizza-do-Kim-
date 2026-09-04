@@ -1481,34 +1481,111 @@ body.light-theme .pix-key-row code{color:#2b211c}
     }
   }
 
-  async function refreshPixBox(){
-    const box=q("pixPaymentBox");
-    if(!box) return;
-    const payment=q("payment").value;
-    const isPix=payment==="Pix";
-    box.classList.toggle("show",isPix);
-    q("change").disabled=payment!=="Dinheiro";
-    if(!isPix) return;
+  let pixPaymentTxid="";
+let pixPaymentPaid=false;
+let pixStatusTimer=null;
+let pixLastAmount="";
 
-    const subtotal=state.items.reduce((s,i)=>s+i.qty*i.unit,0);
-    const total=subtotal+getDeliveryFee();
-    q("pixTotalNote").textContent=total>0
-      ? `QR Code preparado para o total atual: ${brl(total)}`
-      : "Adicione os itens ao pedido para o QR Code usar o valor final.";
-
-    try{
-      const res=await fetch(`/api/pix?amount=${encodeURIComponent(total.toFixed(2))}`,{cache:"no-store"});
-      const data=await res.json();
-      if(!res.ok) throw new Error(data.error||"Pix indisponível");
-      q("pixQrImage").src=data.qrDataUrl;
-      q("pixQrImage").dataset.payload=data.payload;
-    }catch(e){
-      console.error("Erro Pix:",e);
-      q("pixQrImage").removeAttribute("src");
-      q("pixQrImage").dataset.payload="";
-      q("pixTotalNote").textContent="A chave Pix continua disponível para copiar.";
-    }
+function stopPixCheck(){
+  if(pixStatusTimer){
+    clearInterval(pixStatusTimer);
+    pixStatusTimer=null;
   }
+}
+
+async function checkPixPayment(){
+  if(!pixPaymentTxid) return false;
+
+  try{
+    const res=await fetch(
+      `/api/pix/status?txid=${encodeURIComponent(pixPaymentTxid)}`,
+      {cache:"no-store"}
+    );
+
+    const data=await res.json();
+
+    if(res.ok && data.paid){
+      pixPaymentPaid=true;
+      stopPixCheck();
+
+      q("pixTotalNote").textContent="✅ Pagamento aprovado! Seu pedido já pode ser enviado.";
+
+      return true;
+    }
+  }catch(e){
+    console.error("Erro ao verificar Pix:",e);
+  }
+
+  return false;
+}
+
+async function refreshPixBox(){
+  const box=q("pixPaymentBox");
+  if(!box) return;
+
+  const payment=q("payment").value;
+  const isPix=payment==="Pix";
+
+  box.classList.toggle("show",isPix);
+  q("change").disabled=payment!=="Dinheiro";
+
+  if(!isPix){
+    stopPixCheck();
+    return;
+  }
+
+  const subtotal=state.items.reduce((s,i)=>s+i.qty*i.unit,0);
+  const total=subtotal+getDeliveryFee();
+  const amount=total.toFixed(2);
+
+  if(total<=0){
+    q("pixTotalNote").textContent="Adicione os itens ao pedido para gerar o Pix.";
+    return;
+  }
+
+  if(pixPaymentTxid && pixLastAmount===amount){
+    return;
+  }
+
+  stopPixCheck();
+  pixPaymentTxid="";
+  pixPaymentPaid=false;
+  pixLastAmount=amount;
+
+  q("pixTotalNote").textContent="⏳ Gerando Pix de "+brl(total)+"...";
+
+  try{
+    const res=await fetch("/api/pix/create",{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({amount:total})
+    });
+
+    const data=await res.json();
+
+    if(!res.ok){
+      throw new Error(data.error||"Pix indisponível");
+    }
+
+    pixPaymentTxid=data.txid;
+    q("pixQrImage").dataset.payload=data.payload||"";
+    q("pixQrImage").removeAttribute("src");
+
+    q("pixTotalNote").textContent=
+      "Pix de "+brl(total)+" gerado. Aguardando pagamento...";
+
+    pixStatusTimer=setInterval(checkPixPayment,3000);
+
+  }catch(e){
+    console.error("Erro Pix:",e);
+    pixPaymentTxid="";
+    pixPaymentPaid=false;
+    q("pixQrImage").removeAttribute("src");
+    q("pixQrImage").dataset.payload="";
+    q("pixTotalNote").textContent=
+      "Não foi possível gerar o Pix. Tente novamente.";
+  }
+}
 
   q("copyPixKey")?.addEventListener("click",()=>copyText(PIX_KEY,"✓ Chave Pix copiada"));
   q("copyPixCode")?.addEventListener("click",()=>{
@@ -1633,6 +1710,7 @@ body.light-theme .pix-key-row code{color:#2b211c}
         address:`${deliveryPlaceName()} — ${q("address").value.trim()}`,
         reference:q("reference").value.trim(),
         payment:q("payment").value,
+        paymentTxid: pixPaymentTxid,
         change:q("payment").value==="Dinheiro" ? q("change").value.trim() : ""
       },
       items,
